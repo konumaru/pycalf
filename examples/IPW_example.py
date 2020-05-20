@@ -43,6 +43,10 @@ def main():
     # Fit model.
     model.fit(scaled_X, treatment)
 
+    # Check Bais Effect.
+    print('Biased Effect')
+    print(model.raw_effect(treatment, y), '\n')
+
     # Inference Some Effect.
     print('ATE:')
     print(model.estimate_ate(treatment, y), '\n')
