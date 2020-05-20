@@ -15,6 +15,13 @@ class BaseModel:
         self.ps = None
         self.weight = None
 
+    def raw_effect(self, treatment, outcomes):
+        dummy_weight = np.ones(treatment.shape[0])
+
+        effect_size = self._estimate_effect_size(treatment, outcomes, dummy_weight)
+        effect_size = effect_size.assign(raw_effect=effect_size['Z1'] - effect_size['Z0'])
+        return effect_size
+
     def acu(self, treatment):
         return roc_auc_score(treatment, self.ps)
 
