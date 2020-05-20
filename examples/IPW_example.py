@@ -5,6 +5,7 @@ from sklearn import preprocessing
 from sklearn.linear_model import LogisticRegression
 
 from pycalf import PropensityScore
+from pycalf import metrics
 
 
 def main():
@@ -46,6 +47,12 @@ def main():
     # Check Bais Effect.
     print('Biased Effect')
     print(model.raw_effect(treatment, y), '\n')
+
+    print('Standard Diff')
+    std_diff = metrics.StandardDiff(X, treatment, weight=model.ps)
+    print(std_diff)
+
+    metrics.plot_standard_diff(std_diff)
 
     # Inference Some Effect.
     print('ATE:')
