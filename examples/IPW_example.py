@@ -53,6 +53,12 @@ def main():
     print('ATU:')
     print(model.estimate_atu(treatment, y), '\n')
 
+    print('AUC:')
+    print(model.acu(treatment))
+
+    model.plot_roc_curve(treatment)
+    model.plot_propensity_score(treatment)
+
 
 if __name__ == '__main__':
     main()
