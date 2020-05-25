@@ -60,7 +60,6 @@ class BaseModel:
             color='tab:orange'
         )
         plt.show()
-        pass
 
 
 class IPW(BaseModel):

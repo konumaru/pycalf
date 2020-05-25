@@ -11,7 +11,7 @@ class StandardDiff():
         self.std_diff = None
         super().__init__()
 
-    def fit(self, X, treatment, weight=None):
+    def fit(self, X: pd.DataFrame, treatment: pd.Series, weight: np.array = None):
         covariates = X.columns.tolist()
         is_treat = (treatment == 1)
         # Treat Group.
@@ -32,11 +32,11 @@ class StandardDiff():
     def transform(self):
         return self.std_diff
 
-    def fit_transform(self, X, treatment, weight=None):
+    def fit_transform(self, X: pd.DataFrame, treatment: pd.Series, weight: np.array = None):
         self.fit(X, treatment, weight)
         return self.transform()
 
-    def plot_d_values(self, figsize=(12, 6), thresh=0.2):
+    def plot_d_values(self, figsize: tuple = (12, 6), thresh: float = 0.2):
         plt.figure(figsize=figsize)
         plt.title('Standard Diff')
         plt.bar(self.std_diff.index, self.std_diff.values)
