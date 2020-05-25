@@ -19,7 +19,8 @@ def StandardDiff(X, treatment, weight=None):
     control_var = np.average(np.square(control_df - control_avg),
                              weights=weight[~is_treat], axis=0)
     # Estimate d_value.
-    d_value = np.abs(treat_avg - control_avg) / np.sqrt((treat_var + control_var) * 0.5)
+    sc = np.sqrt((sum(is_treat) * treat_var + sum(~is_treat) * control_var) / X.shape[0])
+    d_value = np.abs(treat_avg - control_avg) / sc
     std_diff = pd.Series(d_value, index=covariates).sort_values()
     return std_diff
 
