@@ -49,10 +49,11 @@ def main():
     print(model.raw_effect(treatment, y), '\n')
 
     print('Standard Diff')
-    std_diff = metrics.StandardDiff(X, treatment, weight=model.ps)
-    print(std_diff)
+    std_diff = metrics.StandardDiff()
+    d_values = std_diff.fit_transform(X, treatment, weight=model.ps)
+    print(d_values)
 
-    metrics.plot_standard_diff(std_diff)
+    std_diff.plot_d_values()
 
     # Inference Some Effect.
     print('ATE:')
