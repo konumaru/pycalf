@@ -50,7 +50,7 @@ def main():
 
     print('Standard Diff')
     std_diff = metrics.StandardDiff()
-    d_values = std_diff.fit_transform(X, treatment, weight=model.ps)
+    d_values = std_diff.fit_transform(X, treatment, weight=model.weight)
     print(d_values)
 
     std_diff.plot_d_values()
@@ -70,6 +70,20 @@ def main():
 
     model.plot_roc_curve(treatment)
     model.plot_propensity_score(treatment)
+
+    # Attribute Effect
+    treatment = 'cm_dummy'
+    y = 'gamesecond'
+    features = [
+        'child_dummy', 'area_kanto', 'area_keihan', 'area_tokai', 'area_keihanshin',
+        'T', 'F1', 'F2', 'F3', 'M1', 'M2', 'M3'
+    ]
+
+    attr_effect = metrics.AttributeEffect()
+    attr_effect.fit(df[features], df[treatment], df[y], weight=model.weight, ps=model.ps)
+    result = attr_effect.transform()
+    print(result)
+    attr_effect.plot_lift_values()
 
 
 if __name__ == '__main__':

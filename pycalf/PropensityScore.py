@@ -15,6 +15,9 @@ class BaseModel:
         self.ps = None
         self.weight = None
 
+    def fit(self):
+        raise NotImplementedError
+
     def raw_effect(self, treatment, outcomes):
         dummy_weight = np.ones(treatment.shape[0])
 
