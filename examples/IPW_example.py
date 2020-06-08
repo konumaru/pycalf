@@ -80,7 +80,7 @@ def main():
     ]
 
     attr_effect = metrics.AttributeEffect()
-    attr_effect.fit(df[features], df[treatment], df[y], weight=model.weight, ps=model.ps)
+    attr_effect.fit(df[features], df[treatment], df[y], weight=model.weight)
     result = attr_effect.transform()
     print(result)
     attr_effect.plot_lift_values()
