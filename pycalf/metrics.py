@@ -15,6 +15,20 @@ class StandardDiff():
         super().__init__()
 
     def fit(self, X: pd.DataFrame, treatment: pd.Series, weight: np.array = None):
+        """Description
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+
+        treatment : pd.Series
+
+        weight : np.array
+
+        Returns
+        -------
+        None
+        """
         covariates = X.columns.tolist()
         is_treat = (treatment == 1)
         # Treat Group.
@@ -33,13 +47,48 @@ class StandardDiff():
         self.std_diff = pd.Series(d_value, index=covariates).sort_values()
 
     def transform(self):
+        """Description
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        pd.DataFrame
+        """
         return self.std_diff
 
     def fit_transform(self, X: pd.DataFrame, treatment: pd.Series, weight: np.array = None):
+        """Description
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+
+        treatment : pd.Series
+
+        weight : np.array
+
+        Returns
+        -------
+        pd.DataFrame
+        """
         self.fit(X, treatment, weight)
         return self.transform()
 
     def plot_d_values(self, figsize: tuple = (12, 6), threshold: float = 0.2):
+        """Description
+
+        Parameters
+        ----------
+        figsize : tuple
+
+        threshold : float
+
+        Returns
+        -------
+        """
         plt.figure(figsize=figsize)
         plt.title('Standard Diff')
         plt.bar(self.std_diff.index, self.std_diff.values)
@@ -57,11 +106,37 @@ class AttributeEffect():
         super().__init__()
 
     def fit(self, X: pd.DataFrame, treatment: pd.Series, y: pd.Series, weight: np.array = None):
+        """Description
+
+        Parameters
+        ----------
+        X : pd.DataFrame
+
+        treatment : pd.Series
+
+        y : pd.Series
+
+        weight : np.array
+
+        Returns
+        -------
+        None
+        """
         is_treat = (treatment == 1)
         self.treat_result = sm.WLS(y[is_treat], X[is_treat], weights=weight[is_treat]).fit()
         self.control_result = sm.WLS(y[~is_treat], X[~is_treat], weights=weight[~is_treat]).fit()
 
     def transform(self):
+        """Description
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        pd.DataFrame
+        """
         result = pd.DataFrame()
         models = [self.control_result, self.treat_result]
         for i, model in enumerate(models):
@@ -77,6 +152,15 @@ class AttributeEffect():
         return result_df
 
     def plot_lift_values(self, figsize: tuple = (12, 6)):
+        """Description
+
+        Parameters
+        ----------
+        figsize : tuple
+
+        Returns
+        -------
+        """
         plt.figure(figsize=figsize)
         plt.title('Treatment Lift Values')
         plt.bar(self.effect.index, self.effect['Lift'].values)
@@ -91,6 +175,16 @@ class VIF():
         self.result = None
 
     def fit(self, data: pd.DataFrame):
+        """Description
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+
+        Returns
+        -------
+        None
+        """
         vif = pd.DataFrame(index=data.columns.tolist(), columns=['VIF'], dtype='float64')
 
         for feature in data.columns.tolist():
@@ -106,4 +200,13 @@ class VIF():
         self.result = vif
 
     def transform(self):
+        """Description
+
+        Parameters
+        ----------
+
+        Returns
+        -------
+        pd.DataFrame
+        """
         return self.result

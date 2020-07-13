@@ -7,6 +7,9 @@ from sklearn.linear_model import LogisticRegression
 from pycalf import PropensityScore
 from pycalf import metrics
 
+import matplotlib.pyplot as plt
+plt.style.use('seaborn')
+
 
 def main():
     # Load Sample Data.

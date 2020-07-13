@@ -6,10 +6,12 @@ from sklearn.metrics import roc_curve, auc
 from sklearn.metrics import roc_auc_score
 
 import matplotlib.pyplot as plt
-plt.style.use('seaborn')
 
 
 class BaseModel:
+    """BaseModel.
+    """
+
     def __init__(self, learner):
         self.learner = learner
         self.ps = None
@@ -18,17 +20,31 @@ class BaseModel:
     def fit(self):
         raise NotImplementedError
 
-    def raw_effect(self, treatment, outcomes):
-        dummy_weight = np.ones(treatment.shape[0])
-
-        effect_size = self._estimate_effect_size(treatment, outcomes, dummy_weight)
-        effect_size = effect_size.assign(raw_effect=effect_size['Z1'] - effect_size['Z0'])
-        return effect_size
-
     def acu(self, treatment):
+        """Description
+
+        Parameters
+        ----------
+        treatment : np.ndarray, pd.Series
+
+        Returns
+        -------
+        float
+            AUC
+        """
         return roc_auc_score(treatment, self.ps)
 
     def plot_roc_curve(self, treatment, figsize=(7, 6)):
+        """Description
+
+        Parameters
+        ----------
+        treatment : np.ndarray, pd.Series
+
+        Returns
+        -------
+        None
+        """
         fpr, tpr, thresholds = metrics.roc_curve(treatment, self.ps)
         auc = metrics.auc(fpr, tpr)
 
@@ -44,6 +60,16 @@ class BaseModel:
         plt.show()
 
     def plot_propensity_score(self, treatment, figsize=(12, 6)):
+        """Description
+
+        Parameters
+        ----------
+        treatment : np.ndarray, pd.Series
+
+        Returns
+        -------
+        None
+        """
         plt.figure(figsize=figsize)
         plt.title('Propensity Score Distoribution.')
         plt.xlabel('Propensity Score')
@@ -66,17 +92,45 @@ class BaseModel:
 
 
 class IPW(BaseModel):
+    """Inverse Probability Weighting Method.
+    """
 
     def __init__(self, learner, clip_bounds=(1e-3, 1 - 1e-3)):
         self.clip_bounds = clip_bounds
         super().__init__(learner)
 
     def fit(self, X, treatment):
+        """Fit Leaner and Calculation IPW.
+
+        Parameters
+        ----------
+        X : numpy ndarray, DataFrame
+
+        treatment : numpy ndarray, Series
+
+        Returns
+        -------
+        None
+        """
         self.learner.fit(X, treatment)
         self.ps = np.clip(self.learner.predict_proba(X)[:, 1], *self.clip_bounds)
         self.weight = np.where(treatment == 1, 1 / self.ps, 1 / (1 - self.ps))
 
     def _estimate_effect_size(self, treatment, outcomes, weight):
+        """Description
+
+        Parameters
+        ----------
+        treatment : np.ndarray, pd.Series
+
+        outcomes : pd.DataFrame
+
+        weight : np.ndarray, pd.Series
+
+        Returns
+        -------
+        pd.DataFrame
+        """
         treatment = np.array(treatment, dtype='bool')
         effect_size = pd.DataFrame(columns=['Z0', 'Z1'])
 
@@ -86,7 +140,38 @@ class IPW(BaseModel):
 
         return effect_size
 
+    def raw_effect(self, treatment, outcomes):
+        """Description
+
+        Parameters
+        ----------
+        treatment : np.ndarray, pd.Series
+
+        outcomes : pd.DataFrame
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        dummy_weight = np.ones(treatment.shape[0])
+
+        effect_size = self._estimate_effect_size(treatment, outcomes, dummy_weight)
+        effect_size = effect_size.assign(raw_effect=effect_size['Z1'] - effect_size['Z0'])
+        return effect_size
+
     def estimate_ate(self, treatment, outcomes):
+        """Description
+
+        Parameters
+        ----------
+        treatment : np.ndarray, pd.Series
+
+        outcomes : pd.DataFrame
+
+        Returns
+        -------
+        pd.DataFrame
+        """
         ate_weight = self.weight
 
         effect_size = self._estimate_effect_size(treatment, outcomes, ate_weight)
@@ -94,6 +179,18 @@ class IPW(BaseModel):
         return effect_size
 
     def estimate_att(self, treatment, outcomes):
+        """Description
+
+        Parameters
+        ----------
+        treatment : np.ndarray, pd.Series
+
+        outcomes : pd.DataFrame
+
+        Returns
+        -------
+        pd.DataFrame
+        """
         att_weight = self.ps * self.weight
 
         effect_size = self._estimate_effect_size(treatment, outcomes, att_weight)
@@ -101,6 +198,18 @@ class IPW(BaseModel):
         return effect_size
 
     def estimate_atu(self, treatment, outcomes):
+        """Description
+
+        Parameters
+        ----------
+        treatment : np.ndarray, pd.Series
+
+        outcomes : pd.DataFrame
+
+        Returns
+        -------
+        pd.DataFrame
+        """
         atu_weight = (1 - self.ps) * self.weight
 
         effect_size = self._estimate_effect_size(treatment, outcomes, atu_weight)
