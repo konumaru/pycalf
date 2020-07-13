@@ -2,6 +2,7 @@ import numpy as np
 import pandas as pd
 
 import statsmodels.api as sm
+from statsmodels.regression import linear_model
 
 import matplotlib.pyplot as plt
 plt.style.use('seaborn')
@@ -87,4 +88,22 @@ class AttributeEffect():
 
 class VIF():
     def __init__(self):
-        super().__init__()
+        self.result = None
+
+    def fit(self, data: pd.DataFrame):
+        vif = pd.DataFrame(index=data.columns.tolist(), columns=['VIF'], dtype='float64')
+
+        for feature in data.columns.tolist():
+            X = data.drop([feature], axis=1)
+            y = data[feature]
+
+            model = linear_model.OLS(endog=y, exog=X)
+            r2 = model.fit().rsquared
+
+            vif_value = np.round(1 / (1 - r2), 2)
+            vif.loc[feature, 'VIF'] = str(vif_value) if vif_value < 5 else str(vif_value) + '*'
+
+        self.result = vif
+
+    def transform(self):
+        return self.result
