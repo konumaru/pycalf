@@ -38,13 +38,14 @@ class StandardDiff():
         self.fit(X, treatment, weight)
         return self.transform()
 
-    def plot_d_values(self, figsize: tuple = (12, 6), thresh: float = 0.2):
+    def plot_d_values(self, figsize: tuple = (12, 6), threshold: float = 0.2):
         plt.figure(figsize=figsize)
         plt.title('Standard Diff')
         plt.bar(self.std_diff.index, self.std_diff.values)
         plt.ylabel('d value')
         plt.xticks(rotation=90)
-        plt.plot([0.0, len(self.std_diff.index)], [thresh, thresh], color='tab:red', linestyle='--')
+        plt.plot([0.0, len(self.std_diff.index)],
+                 [threshold, threshold], color='tab:red', linestyle='--')
         plt.tight_layout()
         plt.show()
 
@@ -82,3 +83,8 @@ class AttributeEffect():
         plt.xticks(rotation=90)
         plt.tight_layout()
         plt.show()
+
+
+class VIF():
+    def __init__(self):
+        super().__init__()
