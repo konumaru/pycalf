@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "pycalf"
-version = "0.2.4"
+version = "0.2.5"
 description = ""
 authors = ["konumaru <konumaru1022@gmail.com>"]
 
