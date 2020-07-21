@@ -194,8 +194,7 @@ class VIF():
             model = linear_model.OLS(endog=y, exog=X)
             r2 = model.fit().rsquared
 
-            vif_value = np.round(1 / (1 - r2), 2)
-            vif.loc[feature, 'VIF'] = str(vif_value) if vif_value < 5 else str(vif_value) + '*'
+            vif.loc[feature, 'VIF'] = np.round(1 / (1 - r2), 2)
 
         self.result = vif
 
@@ -210,3 +209,17 @@ class VIF():
         pd.DataFrame
         """
         return self.result
+
+    def fit_transform(self, data: pd.DataFrame, **kwargs):
+        """Description
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+
+        Returns
+        -------
+        pd.DataFrame
+        """
+        self.fit(data, **kwargs)
+        return self.transform(data)
