@@ -222,4 +222,4 @@ class VIF():
         pd.DataFrame
         """
         self.fit(data, **kwargs)
-        return self.transform(data)
+        return self.transform()
