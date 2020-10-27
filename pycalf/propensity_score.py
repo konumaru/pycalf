@@ -8,98 +8,98 @@ from sklearn.metrics import roc_auc_score
 import matplotlib.pyplot as plt
 
 
-class BaseModel:
-    """BaseModel.
+# class BaseModel:
+#     """BaseModel.
+#     """
+
+#     def __init__(self, learner):
+#         self.learner = learner
+#         self.ps = None
+#         self.weight = None
+
+#     def fit(self):
+#         raise NotImplementedError
+
+#     def acu(self, treatment):
+#         """Description
+
+#         Parameters
+#         ----------
+#         treatment : np.ndarray, pd.Series
+
+#         Returns
+#         -------
+#         float
+#             AUC
+#         """
+#         return roc_auc_score(treatment, self.ps)
+
+#     def plot_roc_curve(self, treatment, figsize=(7, 6)):
+#         """Description
+
+#         Parameters
+#         ----------
+#         treatment : np.ndarray, pd.Series
+
+#         Returns
+#         -------
+#         None
+#         """
+#         fpr, tpr, thresholds = metrics.roc_curve(treatment, self.ps)
+#         auc = metrics.auc(fpr, tpr)
+
+#         plt.figure(figsize=figsize)
+#         plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % auc)
+#         plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+#         plt.xlim([0.0, 1.0])
+#         plt.ylim([0.0, 1.05])
+#         plt.xlabel('False Positive Rate')
+#         plt.ylabel('True Positive Rate')
+#         plt.title('ROC Curve')
+#         plt.legend(loc="lower right")
+#         plt.show()
+
+#     def plot_propensity_score(self, treatment, figsize=(12, 6)):
+#         """Description
+
+#         Parameters
+#         ----------
+#         treatment : np.ndarray, pd.Series
+
+#         Returns
+#         -------
+#         None
+#         """
+#         plt.figure(figsize=figsize)
+#         plt.title('Propensity Score Distoribution.')
+#         plt.xlabel('Propensity Score')
+#         plt.ylabel('The Number of Data')
+#         plt.hist(
+#             self.ps[treatment == 0],
+#             bins=np.linspace(0, 1, 100, endpoint=False),
+#             rwidth=0.4,
+#             align='left',
+#             color='tab:blue'
+#         )
+#         plt.hist(
+#             self.ps[treatment == 1],
+#             bins=np.linspace(0, 1, 100, endpoint=False),
+#             rwidth=0.4,
+#             align='mid',
+#             color='tab:orange'
+#         )
+#         plt.show()
+
+
+class IPW():
+    """Inverse Probability Weighting Method.
     """
 
     def __init__(self, learner):
         self.learner = learner
-        self.ps = None
-        self.weight = None
+        self.p_score = None
 
-    def fit(self):
-        raise NotImplementedError
-
-    def acu(self, treatment):
-        """Description
-
-        Parameters
-        ----------
-        treatment : np.ndarray, pd.Series
-
-        Returns
-        -------
-        float
-            AUC
-        """
-        return roc_auc_score(treatment, self.ps)
-
-    def plot_roc_curve(self, treatment, figsize=(7, 6)):
-        """Description
-
-        Parameters
-        ----------
-        treatment : np.ndarray, pd.Series
-
-        Returns
-        -------
-        None
-        """
-        fpr, tpr, thresholds = metrics.roc_curve(treatment, self.ps)
-        auc = metrics.auc(fpr, tpr)
-
-        plt.figure(figsize=figsize)
-        plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % auc)
-        plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-        plt.xlim([0.0, 1.0])
-        plt.ylim([0.0, 1.05])
-        plt.xlabel('False Positive Rate')
-        plt.ylabel('True Positive Rate')
-        plt.title('ROC Curve')
-        plt.legend(loc="lower right")
-        plt.show()
-
-    def plot_propensity_score(self, treatment, figsize=(12, 6)):
-        """Description
-
-        Parameters
-        ----------
-        treatment : np.ndarray, pd.Series
-
-        Returns
-        -------
-        None
-        """
-        plt.figure(figsize=figsize)
-        plt.title('Propensity Score Distoribution.')
-        plt.xlabel('Propensity Score')
-        plt.ylabel('The Number of Data')
-        plt.hist(
-            self.ps[treatment == 0],
-            bins=np.linspace(0, 1, 100, endpoint=False),
-            rwidth=0.4,
-            align='left',
-            color='tab:blue'
-        )
-        plt.hist(
-            self.ps[treatment == 1],
-            bins=np.linspace(0, 1, 100, endpoint=False),
-            rwidth=0.4,
-            align='mid',
-            color='tab:orange'
-        )
-        plt.show()
-
-
-class IPW(BaseModel):
-    """Inverse Probability Weighting Method.
-    """
-
-    def __init__(self, learner, clip_bounds=(1e-3, 1 - 1e-3)):
-        self.clip_bounds = clip_bounds
-        super().__init__(learner)
-
-    def fit(self, X, treatment):
+    def fit(self, X, treatment, clip=1e-3):
         """Fit Leaner and Calculation IPW.
 
         Parameters
@@ -108,13 +108,28 @@ class IPW(BaseModel):
 
         treatment : numpy ndarray, Series
 
+        clip : float
+
         Returns
         -------
         None
         """
         self.learner.fit(X, treatment)
-        self.ps = np.clip(self.learner.predict_proba(X)[:, 1], *self.clip_bounds)
-        self.weight = np.where(treatment == 1, 1 / self.ps, 1 / (1 - self.ps))
+        assert 0 <= clip < 1, 'clip must be 0 to 1.'
+        self.p_score = np.clip(self.learner.predict_proba(X)[:, 1], clip, 1 - clip)
+
+    def get_score(self):
+        return self.p_score
+
+    def get_weight(self, treatment, mode='ate'):
+        if mode == 'ate':
+            return np.where(treatment == 1, 1 / self.p_score, 1 / (1 - self.p_score))
+        elif mode == 'att':
+            return np.where(treatment == 1, 1, self.p_score / (1 - self.p_score))
+        elif mode == 'atu':
+            return np.where(treatment == 1, (1 - self.p_score) / self.p_score, 1)
+        else:
+            assert False, 'mode must be string and it is ate, att or atu.'
 
     def _estimate_effect_size(self, treatment, outcomes, weight):
         """Description
@@ -137,7 +152,6 @@ class IPW(BaseModel):
         for i, (name, values) in enumerate(outcomes.items()):
             effect_size.loc[name, 'Z0'] = np.average(values[~treatment], weights=weight[~treatment])
             effect_size.loc[name, 'Z1'] = np.average(values[treatment], weights=weight[treatment])
-
         return effect_size
 
     def raw_effect(self, treatment, outcomes):
@@ -191,7 +205,7 @@ class IPW(BaseModel):
         -------
         pd.DataFrame
         """
-        att_weight = self.ps * self.weight
+        att_weight = self.p_score * self.weight
 
         effect_size = self._estimate_effect_size(treatment, outcomes, att_weight)
         effect_size = effect_size.assign(ATT=effect_size['Z1'] - effect_size['Z0'])
@@ -210,7 +224,7 @@ class IPW(BaseModel):
         -------
         pd.DataFrame
         """
-        atu_weight = (1 - self.ps) * self.weight
+        atu_weight = (1 - self.p_score) * self.weight
 
         effect_size = self._estimate_effect_size(treatment, outcomes, atu_weight)
         effect_size = effect_size.assign(ATU=effect_size['Z1'] - effect_size['Z0'])

@@ -8,13 +8,13 @@ import matplotlib.pyplot as plt
 plt.style.use('seaborn')
 
 
-class StandardDiff():
+class EffectSize():
 
     def __init__(self):
-        self.std_diff = None
-        super().__init__()
+        self.effect_size = None
+        self.effect_name = None
 
-    def fit(self, X: pd.DataFrame, treatment: pd.Series, weight: np.array = None):
+    def fit(self, X: pd.DataFrame, treatment: np.ndarray, weight: np.ndarray = None):
         """Description
 
         Parameters
@@ -29,22 +29,25 @@ class StandardDiff():
         -------
         None
         """
-        covariates = X.columns.tolist()
-        is_treat = (treatment == 1)
-        # Treat Group.
-        treat_df = X[treatment == 1]
-        treat_avg = np.average(treat_df, weights=weight[is_treat], axis=0)
-        treat_var = np.average(np.square(treat_df - treat_avg),
-                               weights=weight[is_treat], axis=0)
-        # Control Group.
-        control_df = X[treatment == 0]
-        control_avg = np.average(control_df, weights=weight[~is_treat], axis=0)
-        control_var = np.average(np.square(control_df - control_avg),
-                                 weights=weight[~is_treat], axis=0)
+        if weight is None:
+            weight = np.ones(X.shape[0])
+        # Cauculation Average and Variance of Treat Group.
+        treat_avg = np.average(X[treatment], weights=weight[treatment], axis=0)
+        treat_var = np.average(np.square(X[treatment] - treat_avg),
+                               weights=weight[treatment], axis=0)
+        # Cauculation Average and Variance of Control Group.
+        control_avg = np.average(X[~treatment], weights=weight[~treatment], axis=0)
+        control_var = np.average(np.square(X[~treatment] - control_avg),
+                                 weights=weight[~treatment], axis=0)
         # Estimate d_value.
-        sc = np.sqrt((sum(is_treat) * treat_var + sum(~is_treat) * control_var) / X.shape[0])
+        data_size = X.shape[0]
+        treat_size = np.sum(treatment)
+        control_size = np.sum(~treatment)
+        sc = np.sqrt((treat_size * treat_var + control_size * control_var) / data_size)
         d_value = np.abs(treat_avg - control_avg) / sc
-        self.std_diff = pd.Series(d_value, index=covariates).sort_values()
+
+        self.effect_size = np.array(d_value)
+        self.effect_name = X.columns.to_numpy()
 
     def transform(self):
         """Description
@@ -55,11 +58,11 @@ class StandardDiff():
 
         Returns
         -------
-        pd.DataFrame
+        tuple
         """
-        return self.std_diff
+        return (self.effect_name, self.effect_size)
 
-    def fit_transform(self, X: pd.DataFrame, treatment: pd.Series, weight: np.array = None):
+    def fit_transform(self, X: pd.DataFrame, treatment: np.ndarray, weight: np.ndarray = None):
         """Description
 
         Parameters
@@ -77,27 +80,38 @@ class StandardDiff():
         self.fit(X, treatment, weight)
         return self.transform()
 
-    def plot_d_values(self, figsize: tuple = (12, 6), threshold: float = 0.2):
-        """Description
 
-        Parameters
-        ----------
-        figsize : tuple
+def plot_effect_size(
+        X, treatment, weight=None,
+        ascending=False, sortbyraw=True, figsize=(12, 6), threshold=0.2):
+    es = EffectSize()
+    es.fit(X, treatment, weight=weight)
+    ajusted_names, ajusted_effects = es.transform()
 
-        threshold : float
+    es = EffectSize()
+    es.fit(X, treatment, weight=None)
+    raw_names, raw_effects = es.transform()
 
-        Returns
-        -------
-        """
-        plt.figure(figsize=figsize)
-        plt.title('Standard Diff')
-        plt.bar(self.std_diff.index, self.std_diff.values)
-        plt.ylabel('d value')
-        plt.xticks(rotation=90)
-        plt.plot([0.0, len(self.std_diff.index)],
-                 [threshold, threshold], color='tab:red', linestyle='--')
-        plt.tight_layout()
-        plt.show()
+    sort_data = raw_effects if sortbyraw else ajusted_effects
+
+    if ascending:
+        sorted_index = np.argsort(sort_data)
+    else:
+        sorted_index = np.argsort(sort_data)[::-1]
+
+    plt.figure(figsize=figsize)
+    plt.title('Standard Diff')
+
+    plt.bar(raw_names[sorted_index], raw_effects[sorted_index],
+            color='tab:blue', label='Raw Data')
+    plt.bar(ajusted_names[sorted_index], ajusted_effects[sorted_index],
+            color='tab:cyan', label='Ajusted Data', width=0.5)
+    plt.ylabel('d value')
+    plt.xticks(rotation=90)
+    plt.plot([0.0, len(raw_names)], [threshold, threshold], color='tab:red', linestyle='--')
+    plt.tight_layout()
+    plt.legend()
+    plt.show()
 
 
 class AttributeEffect():
