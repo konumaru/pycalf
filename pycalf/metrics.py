@@ -1,6 +1,9 @@
 import numpy as np
 import pandas as pd
 
+from sklearn import metrics
+from sklearn.metrics import roc_auc_score
+
 import statsmodels.api as sm
 from statsmodels.regression import linear_model
 
@@ -103,9 +106,9 @@ def plot_effect_size(
     plt.title('Standard Diff')
 
     plt.bar(raw_names[sorted_index], raw_effects[sorted_index],
-            color='tab:blue', label='Raw Data')
+            color='tab:blue', label='Raw')
     plt.bar(ajusted_names[sorted_index], ajusted_effects[sorted_index],
-            color='tab:cyan', label='Ajusted Data', width=0.5)
+            color='tab:cyan', label='Ajusted', width=0.5)
     plt.ylabel('d value')
     plt.xticks(rotation=90)
     plt.plot([0.0, len(raw_names)], [threshold, threshold], color='tab:red', linestyle='--')
@@ -237,3 +240,70 @@ class VIF():
         """
         self.fit(data, **kwargs)
         return self.transform()
+
+
+def plot_roc_curve(y_true, y_score, figsize=(7, 6)):
+    fpr, tpr, thresholds = metrics.roc_curve(y_true, y_score)
+    auc = metrics.auc(fpr, tpr)
+
+    plt.figure(figsize=figsize)
+    plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % auc)
+    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
+    plt.xlim([0.0, 1.0])
+    plt.ylim([0.0, 1.05])
+    plt.xlabel('False Positive Rate')
+    plt.ylabel('True Positive Rate')
+    plt.title('ROC Curve')
+    plt.legend(loc="lower right")
+    plt.show()
+
+
+def plot_probability_distribution(y_true, y_score, figsize=(12, 6)):
+    plt.figure(figsize=figsize)
+    plt.title('Probability Distoribution.')
+    plt.xlabel('Probability')
+    plt.ylabel('Number of Data')
+    plt.hist(
+        y_score[y_true == 0],
+        bins=np.linspace(0, 1, 100, endpoint=False),
+        rwidth=0.4,
+        align='left',
+        color='tab:blue'
+    )
+    plt.hist(
+        y_score[y_true == 1],
+        bins=np.linspace(0, 1, 100, endpoint=False),
+        rwidth=0.4,
+        align='mid',
+        color='tab:orange'
+    )
+    plt.show()
+
+
+def plot_treatment_effect(outcome_name, control_effect, treat_effect, effect_size,
+                          figsize=None, fontsize=12):
+    plt.figure(figsize=figsize)
+    plt.title(outcome_name)
+    plt.bar(
+        ['control', 'treatment'],
+        [control_effect, treat_effect],
+        label=f'Treatment Effect : {effect_size}'
+    )
+    plt.ylabel('effect size')
+    plt.legend(loc="upper left", fontsize=fontsize)
+    plt.show()
+
+
+def f1_score(y_true, y_score, threshold='auto'):
+    assert (
+        threshold == 'auto' or 0 <= threshold < 1,
+        'mode must be "auto" or 0 to 1.'
+    )
+
+    if threshold == 'auto':
+        fpr, tpr, thresholds = metrics.roc_curve(y_true, y_score)
+        gmeans = np.sqrt(tpr * (1 - fpr))
+        threshold = thresholds[np.argmax(gmeans)]
+
+    score = metrics.f1_score(y_true, (y_score > threshold))
+    return score
