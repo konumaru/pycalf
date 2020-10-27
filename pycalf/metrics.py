@@ -295,10 +295,8 @@ def plot_treatment_effect(outcome_name, control_effect, treat_effect, effect_siz
 
 
 def f1_score(y_true, y_score, threshold='auto'):
-    assert (
-        threshold == 'auto' or 0 <= threshold < 1,
-        'mode must be "auto" or 0 to 1.'
-    )
+    msg = 'mode must be "auto" or 0 to 1.'
+    assert threshold == 'auto' or 0 <= threshold < 1, msg
 
     if threshold == 'auto':
         fpr, tpr, thresholds = metrics.roc_curve(y_true, y_score)
