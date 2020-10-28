@@ -6,20 +6,66 @@ from sklearn.neighbors import NearestNeighbors
 
 
 class Matching():
+    """
+    Matching with propensity score.
+
+    Attributes
+    ----------
+    p_score : numpy.ndarray
+        Propensity Score.
+    """
+
     def __init__(self, learner, eps=1e-2):
+        """
+        Parameters
+        ----------
+        learner :
+            Learner to estimate propensity score.
+        esp : float
+            Extreme Value Trend Score Rounding Value.
+        """
         self.learner = learner
-        self.p_score = None
         self.eps = 1e-2
+        self.p_score = None
 
     def fit(self, X, treatment, y, clip=1e-15):
+        """
+        Fit learner and Estimate Propensity Score.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Covariates for propensity score.
+        treatment : numpy.ndarray[bool]
+            Flags with or without intervention.
+        y : numpy.ndarray
+            Outcome variables.
+        """
         self.learner.fit(X, treatment)
         assert 0 <= clip < 1, 'clip must be 0 to 1.'
         self.p_score = np.clip(self.learner.predict_proba(X)[:, 1], clip, 1 - clip)
 
     def get_score(self):
+        """
+        Return propensity score.
+        """
         return self.p_score
 
     def get_weight(self, treatment, mode='ate'):
+        """
+        Return sample weight representing matching.
+
+        Parameters
+        ----------
+        treatment : numpy.ndarray[bool]
+            Flags with or without intervention.
+        mode : str
+            Adjustment method. raw or ate.
+
+        Returns
+        -------
+        sampel_weight : numpy.ndarray
+        """
         self._check_mode(mode)
         if mode == 'raw':
             return np.ones(treatment.shape[0])
@@ -27,10 +73,30 @@ class Matching():
             return self._get_matching_weight(treatment)
 
     def _check_mode(self, mode):
+        """
+        Check if it is a supported mode.
+
+        Parameters
+        ----------
+        mode : str
+            Adjustment method. raw or ate.
+        """
         mode_list = ['raw', 'ate']
         assert mode in mode_list, 'mode must be string and it is raw　or ate.'
 
     def _get_matching_weight(self, treatment):
+        """
+        Match using propensity score and return sample_weight.
+
+        Parameters
+        ----------
+        treatment : numpy.ndarray[bool]
+            Flags with or without intervention.
+
+        Returns
+        -------
+        sampel_weight : numpy.ndarray
+        """
         score = self.p_score
         treat_idx, control_idx = self._get_nearest_idx(treatment, score)
 
@@ -41,6 +107,23 @@ class Matching():
         return weight
 
     def _get_nearest_idx(self, treatment, score):
+        """
+        Match the closest data between groups with and without intervention.
+
+        Parameters
+        ----------
+        treatment : numpy.ndarray[bool]
+            Flags with or without intervention.
+        score : numpy.ndarray
+            Propensity Score.
+
+        Returns
+        -------
+        treat_idx : numpy.ndarray
+            Sample index of treatment group.
+        control_idx : numpy.ndarray
+            Sample index of control group.
+        """
         score = score.reshape(-1, 1)
         control_size, treat_size = (~treatment).sum(), treatment.sum()
         maijor_sample_group = np.argmax([control_size, treat_size])
@@ -60,11 +143,46 @@ class Matching():
         return treat_idx, control_idx
 
     def estimate_effect(self, treatment, y, mode='ate'):
+        """
+        Match using propensity score and return sample_weight.
+
+        Parameters
+        ----------
+        treatment : numpy.ndarray[bool]
+            Flags with or without intervention.
+        y : numpy.ndarray
+            Outcome variables.
+        mode : str
+            Adjustment method. raw or ate.
+
+        Returns
+        -------
+        ajusted_outcomes : numpy.ndarray
+        """
         self._check_mode(mode)
         weight = self.get_weight(treatment, mode=mode)
         return self._estimate_outcomes(treatment, y, weight)
 
     def _estimate_outcomes(self, treatment, y, weight):
+        """
+        Match using propensity score and return sample_weight.
+
+        Parameters
+        ----------
+        treatment : numpy.ndarray[bool]
+            Flags with or without intervention.
+        y : numpy.ndarray
+            Outcome variables.
+
+        Returns
+        -------
+        avg_y_control : float
+            average outcome of control group.
+        avg_y_treat : float
+            average outcome of treatment group.
+        effect_size : float
+            diff of average_y_treatment and average_y_control
+        """
         avg_y_control = np.average(y[~treatment], axis=0, weights=weight[~treatment])
         avg_y_treat = np.average(y[treatment], axis=0, weights=weight[treatment])
         effect_size = avg_y_treat - avg_y_control
@@ -84,11 +202,11 @@ class IPW():
 
         Parameters
         ----------
-        X : numpy ndarray, DataFrame
+        X: numpy ndarray, DataFrame
 
-        treatment : numpy ndarray, Series
+        treatment: numpy ndarray, Series
 
-        clip : float
+        clip: float
 
         Returns
         -------
@@ -117,9 +235,9 @@ class IPW():
 
         Parameters
         ----------
-        treatment : np.ndarray, pd.Series
+        treatment: np.ndarray, pd.Series
 
-        outcomes : pd.DataFrame
+        outcomes: pd.DataFrame
 
         Returns
         -------
@@ -138,15 +256,15 @@ class IPW():
 
         Parameters
         ----------
-        treatment : np.ndarray
+        treatment: np.ndarray
 
-        y :  np.ndarray
+        y: np.ndarray
 
-        weight : np.ndarray
+        weight: np.ndarray
 
         Returns
         -------
-        (y_control, y_treat, effect_size) : tuple
+        (y_control, y_treat, effect_size): tuple
         """
         avg_y_control = np.average(y[~treatment], axis=0, weights=weight[~treatment])
         avg_y_treat = np.average(y[treatment], axis=0, weights=weight[treatment])
