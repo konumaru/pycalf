@@ -48,7 +48,9 @@ z0, z1, treat_effect = model.estimate_effect(
 metrics.plot_treatment_effect(outcome_name, z0[0], z1[0], treat_effect[0].round())
 ```
 <div align="center">
+  <h4> Propensity Score Distribution </h4>
   <img width="629px" height="618px" src="./docs/img/readme_metrics.png">
+  <h4> Average Treatment Effect </h4>
   <img width="600" height="420px" src="./docs/img/readme_ate.png">
 </div>
 
