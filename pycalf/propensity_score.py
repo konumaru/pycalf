@@ -15,20 +15,17 @@ class Matching():
         Propensity Score.
     """
 
-    def __init__(self, learner, eps=1e-2):
+    def __init__(self, learner):
         """
         Parameters
         ----------
         learner :
             Learner to estimate propensity score.
-        esp : float
-            Extreme Value Trend Score Rounding Value.
         """
         self.learner = learner
-        self.eps = 1e-2
         self.p_score = None
 
-    def fit(self, X, treatment, y, clip=1e-15):
+    def fit(self, X, treatment, y, eps=1e-15):
         """
         Fit learner and Estimate Propensity Score.
 
@@ -40,10 +37,12 @@ class Matching():
             Flags with or without intervention.
         y : numpy.ndarray
             Outcome variables.
+        esp : float
+            Extreme Value Trend Score Rounding Value.
         """
         self.learner.fit(X, treatment)
-        assert 0 <= clip < 1, 'clip must be 0 to 1.'
-        self.p_score = np.clip(self.learner.predict_proba(X)[:, 1], clip, 1 - clip)
+        assert 0 <= eps < 1, 'clip must be 0 to 1.'
+        self.p_score = np.clip(self.learner.predict_proba(X)[:, 1], eps, 1 - eps)
 
     def get_score(self):
         """
@@ -173,6 +172,8 @@ class Matching():
             Flags with or without intervention.
         y : numpy.ndarray
             Outcome variables.
+        weight : numpy.ndarray
+            sample weight with matching.
 
         Returns
         -------
@@ -194,32 +195,53 @@ class IPW():
     """
 
     def __init__(self, learner):
+        """
+        Parameters
+        ----------
+        learner :
+            Learner to estimate propensity score.
+        """
         self.learner = learner
         self.p_score = None
 
-    def fit(self, X, treatment, clip=1e-15):
-        """Fit Leaner and Calculation IPW.
+    def fit(self, X, treatment, eps=1e-15):
+        """
+        Fit learner and Estimate Propensity Score.
 
         Parameters
         ----------
-        X: numpy ndarray, DataFrame
-
-        treatment: numpy ndarray, Series
-
-        clip: float
-
-        Returns
-        -------
-        None
+        X : numpy.ndarray
+            Covariates for propensity score.
+        treatment : numpy.ndarray[bool]
+            Flags with or without intervention.
+        esp : float
+            Extreme Value Trend Score Rounding Value.
         """
         self.learner.fit(X, treatment)
-        assert 0 <= clip < 1, 'clip must be 0 to 1.'
-        self.p_score = np.clip(self.learner.predict_proba(X)[:, 1], clip, 1 - clip)
+        assert 0 <= eps < 1, 'clip must be 0 to 1.'
+        self.p_score = np.clip(self.learner.predict_proba(X)[:, 1], eps, 1 - eps)
 
     def get_score(self):
+        """
+        Return propensity score.
+        """
         return self.p_score
 
     def get_weight(self, treatment, mode='ate'):
+        """
+        Return sample weight representing matching.
+
+        Parameters
+        ----------
+        treatment : numpy.ndarray[bool]
+            Flags with or without intervention.
+        mode : str
+            Adjustment method. must be raw, ate, att or atu.
+
+        Returns
+        -------
+        sampel_weight : numpy.ndarray
+        """
         self._check_mode(mode)
         if mode == 'raw':
             return np.ones(treatment.shape[0])
@@ -231,40 +253,59 @@ class IPW():
             return np.where(treatment == 1, (1 - self.p_score) / self.p_score, 1)
 
     def estimate_effect(self, treatment, y, mode='ate'):
-        """Description
+        """
+        Match using propensity score and return sample_weight.
 
         Parameters
         ----------
-        treatment: np.ndarray, pd.Series
-
-        outcomes: pd.DataFrame
+        treatment : numpy.ndarray[bool]
+            Flags with or without intervention.
+        y : numpy.ndarray
+            Outcome variables.
+        mode : str
+            Adjustment method. must be raw, ate, att or atu.
 
         Returns
         -------
-        pd.DataFrame
+        ajusted_outcomes : numpy.ndarray
         """
         self._check_mode(mode)
         weight = self.get_weight(treatment, mode=mode)
         return self._estimate_outcomes(treatment, y, weight)
 
     def _check_mode(self, mode):
-        mode_list = ['raw', 'ate', 'att', 'atu']
-        assert mode in mode_list, 'mode must be string and it is raw, ate, att or atu.'
-
-    def _estimate_outcomes(self, treatment, y, weight):
-        """Description
+        """
+        Check if it is a supported mode.
 
         Parameters
         ----------
-        treatment: np.ndarray
+        mode : str
+            Adjustment method. must be raw, ate, att or atu.
+        """
+        mode_list = ['raw', 'ate', 'att', 'atu']
+        assert mode in mode_list, 'mode must be string and it is must be raw, ate, att or atu.'
 
-        y: np.ndarray
+    def _estimate_outcomes(self, treatment, y, weight):
+        """
+        Match using propensity score and return sample_weight.
 
-        weight: np.ndarray
+        Parameters
+        ----------
+        treatment : numpy.ndarray[bool]
+            Flags with or without intervention.
+        y : numpy.ndarray
+            Outcome variables.
+        weight : numpy.ndarray
+            sample weight with ipw.
 
         Returns
         -------
-        (y_control, y_treat, effect_size): tuple
+        avg_y_control : float
+            average outcome of control group.
+        avg_y_treat : float
+            average outcome of treatment group.
+        effect_size : float
+            diff of average_y_treatment and average_y_control
         """
         avg_y_control = np.average(y[~treatment], axis=0, weights=weight[~treatment])
         avg_y_treat = np.average(y[treatment], axis=0, weights=weight[treatment])
@@ -274,16 +315,65 @@ class IPW():
 
 class DoubleRobust(IPW):
     def __init__(self, learner, second_learner):
+        """
+        Parameters
+        ----------
+        learner :
+            Learner to estimate propensity score.
+        second_learner :
+            Learner to estimate anti-real virtual intervention effect.
+        """
         super(DoubleRobust, self).__init__(learner)
         self.treat_learner = copy.deepcopy(second_learner)
         self.control_learner = copy.deepcopy(second_learner)
 
     def estimate_effect(self, X, treatment, y, mode='ate'):
+        """
+        Match using propensity score and return sample_weight.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Covariates for propensity score.
+        treatment : numpy.ndarray[bool]
+            Flags with or without intervention.
+        y : numpy.ndarray
+            Outcome variables.
+        mode : str
+            Adjustment method. must be raw, ate, att or atu.
+
+        Returns
+        -------
+        ajusted_outcomes : numpy.ndarray
+        """
         self._check_mode(mode)
         weight = self.get_weight(treatment, mode=mode)
         return self._estimate_outcomes(X, treatment, y, weight)
 
     def _estimate_outcomes(self, X, treatment, y, weight):
+        """
+        Match using propensity score and return sample_weight.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Covariates for propensity score.
+        treatment : numpy.ndarray[bool]
+            Flags with or without intervention.
+        y : numpy.ndarray
+            Outcome variables.
+        weight : numpy.ndarray
+            sample weight of ipw.
+
+        Returns
+        -------
+        avg_y_control : float
+            average outcome of control group.
+        avg_y_treat : float
+            average outcome of treatment group.
+        effect_size : float
+            diff of average_y_treatment and average_y_control
+        """
         y_control = np.zeros(y.shape)
         y_treat = np.zeros(y.shape)
         # Fit second models
