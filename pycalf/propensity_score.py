@@ -24,29 +24,40 @@ class Matching():
         if mode == 'raw':
             return np.ones(treatment.shape[0])
         elif mode == 'ate':
-            return self._get_matche_weight(treatment, self.p_score)
+            return self._get_matching_weight(treatment)
 
     def _check_mode(self, mode):
         mode_list = ['raw', 'ate']
         assert mode in mode_list, 'mode must be string and it is raw　or ate.'
 
-    def _get_matche_weight(self, treatment, score):
+    def _get_matching_weight(self, treatment):
+        score = self.p_score
+        treat_idx, control_idx = self._get_nearest_idx(treatment, score)
+
+        matching_idx = np.concatenate((treat_idx, control_idx), axis=0)
+        idx, counts = np.unique(matching_idx, return_counts=True)
+        weight = np.zeros(treatment.shape[0])
+        weight[idx] = counts
+        return weight
+
+    def _get_nearest_idx(self, treatment, score):
+        score = score.reshape(-1, 1)
+        control_size, treat_size = (~treatment).sum(), treatment.sum()
+        maijor_sample_group = np.argmax([control_size, treat_size])
+
         neigh = NearestNeighbors(n_neighbors=5, metric='manhattan')
-        neigh.fit(score[~treatment].reshape(-1, 1))
-        neigh_dist, neigh_idx = neigh.kneighbors(
-            score[treatment].reshape(-1, 1), 1, return_distance=True)
-        neigh_idx = neigh_idx[neigh_dist < self.eps]
+        neigh.fit(score[treatment == maijor_sample_group])
+        distance, match_idx = neigh.kneighbors(
+            score[treatment != maijor_sample_group], 1, return_distance=True)
+        match_idx = match_idx[distance < self.eps].flatten()
 
-        treat_idx = np.where(treatment)[0]
-        control_idx = np.where(~treatment)[0]
-        treat_idx = treat_idx
-        control_idx = control_idx[neigh_idx.flatten()]
-
-        smpl_idx = np.concatenate((control_idx, treat_idx), axis=0)
-        idx, counts = np.unique(smpl_idx, return_counts=True)
-        weights = np.zeros(treatment.shape[0])
-        weights[idx] = counts
-        return weights
+        if maijor_sample_group == 1:
+            treat_idx = np.where(treatment)[0][match_idx]
+            control_idx = np.where(~treatment)[0]
+        else:
+            treat_idx = np.where(treatment)[0]
+            control_idx = np.where(~treatment)[0][match_idx]
+        return treat_idx, control_idx
 
     def estimate_effect(self, treatment, y, mode='ate'):
         self._check_mode(mode)
