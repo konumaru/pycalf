@@ -49,8 +49,8 @@ metrics.plot_treatment_effect(outcome_name, z0[0], z1[0], treat_effect[0].round(
 ```
 <div align="center">
   <h4> Propensity Score Distribution </h4>
-  <img width="400px" height="380px" src="./docs/img/readme_metrics.png">
+  <img width="500px" height="480px" src="./docs/img/readme_metrics.png">
   <h4> Average Treatment Effect </h4>
-  <img width="400px" height="280px" src="./docs/img/readme_ate.png">
+  <img width="520px" height="380px" src="./docs/img/readme_ate.png">
 </div>
 
