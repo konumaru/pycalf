@@ -27,8 +27,8 @@ class Matching():
             return self._get_matche_weight(treatment, self.p_score)
 
     def _check_mode(self, mode):
-        mode_list = ['raw', 'ate', 'att', 'atu']
-        assert mode in mode_list, 'mode must be string and it is raw, ate, att or atu.'
+        mode_list = ['raw', 'ate']
+        assert mode in mode_list, 'mode must be string and it is raw　or ate.'
 
     def _get_matche_weight(self, treatment, score):
         neigh = NearestNeighbors(n_neighbors=5, metric='manhattan')
@@ -45,8 +45,7 @@ class Matching():
         smpl_idx = np.concatenate((control_idx, treat_idx), axis=0)
         idx, counts = np.unique(smpl_idx, return_counts=True)
         weights = np.zeros(treatment.shape[0])
-        for i, c in zip(idx, counts):
-            weights[i] = c
+        weights[idx] = counts
         return weights
 
     def estimate_effect(self, treatment, y, mode='ate'):
