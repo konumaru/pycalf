@@ -192,16 +192,6 @@ class VIF():
         self.result = None
 
     def fit(self, data: pd.DataFrame):
-        """Description
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-
-        Returns
-        -------
-        None
-        """
         vif = pd.DataFrame(index=data.columns.tolist(), columns=['VIF'], dtype='float64')
 
         for feature in data.columns.tolist():
@@ -210,34 +200,13 @@ class VIF():
 
             model = linear_model.OLS(endog=y, exog=X)
             r2 = model.fit().rsquared
-
             vif.loc[feature, 'VIF'] = np.round(1 / (1 - r2), 2)
-
         self.result = vif
 
     def transform(self):
-        """Description
-
-        Parameters
-        ----------
-
-        Returns
-        -------
-        pd.DataFrame
-        """
         return self.result
 
     def fit_transform(self, data: pd.DataFrame, **kwargs):
-        """Description
-
-        Parameters
-        ----------
-        data : pd.DataFrame
-
-        Returns
-        -------
-        pd.DataFrame
-        """
         self.fit(data, **kwargs)
         return self.transform()
 
