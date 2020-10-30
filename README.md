@@ -1,12 +1,14 @@
-# pycalf
+# pycalf: Causal Inference Library
 
-## Installation
+A library to make causal inference easier by using Python
+
+## Getting Started
+### Installing
 ```
 $ pip install pycalf
 ```
 
-
-## Quick Start
+## Example
 ### Inference with IPW
 ```
 from pycalf import metrics
@@ -54,3 +56,15 @@ metrics.plot_treatment_effect(outcome_name, z0[0], z1[0], treat_effect[0].round(
   <img width="520px" height="380px" src="./docs/img/readme_ate.png">
 </div>
 
+
+## Contributing
+Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
+
+
+## Authors
+- [Konumaru](https://twitter.com/knmr_u) - Initial work
+
+
+## Acknowledgments
+- Uber / causalml: https://github.com/uber/causalml
+- Iwanami Data Science Vol．3: https://www.iwanami.co.jp/book/b243764.html
