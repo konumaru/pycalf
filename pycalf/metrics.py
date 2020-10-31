@@ -14,6 +14,13 @@ plt.style.use('seaborn-darkgird')
 class EffectSize():
     """
     Class for calculating the effect size d.
+
+    Examples
+    --------
+    ate_weight = model.get_weight(treatment, mode='ate')
+    es = metrics.EffectSize()
+    es.fit(X, treatment, weight=ate_weight)
+    es.transform() # return (effect_size, effect_name)
     """
 
     def __init__(self):
@@ -21,15 +28,16 @@ class EffectSize():
         self.effect_name = None
 
     def fit(self, X: pd.DataFrame, treatment: np.ndarray, weight: np.ndarray = None):
-        """Description
+        """Fit the model with X.
 
         Parameters
         ----------
         X : pd.DataFrame
-
+            Covariates for propensity score.
         treatment : pd.Series
-
+            Flags with or without intervention.
         weight : np.array
+            The weight of each sample.
 
         Returns
         -------
@@ -56,28 +64,25 @@ class EffectSize():
         self.effect_name = X.columns.to_numpy()
 
     def transform(self):
-        """Description
-
-        Parameters
-        ----------
-        None
+        """Apply the dimensionality reduction on X.
 
         Returns
         -------
-        tuple
+        (effect_name, effect_size) : tuple
         """
         return (self.effect_name, self.effect_size)
 
     def fit_transform(self, X: pd.DataFrame, treatment: np.ndarray, weight: np.ndarray = None):
-        """Description
+        """Fit the model with X and apply the dimensionality reduction on X.
 
         Parameters
         ----------
         X : pd.DataFrame
-
+            Covariates for propensity score.
         treatment : pd.Series
-
+            Flags with or without intervention.
         weight : np.array
+            The weight of each sample.
 
         Returns
         -------
@@ -85,56 +90,6 @@ class EffectSize():
         """
         self.fit(X, treatment, weight)
         return self.transform()
-
-
-def plot_effect_size(
-        X, treatment, weight=None,
-        ascending=False, sortbyraw=True, figsize=(12, 6), threshold=0.2):
-    """
-    Summary Documentation.
-
-    Parameters
-    ----------
-    X : numpy.ndarray
-    treatment : numpy.ndarray
-    weight : numpy.ndarray
-    ascending : bool
-    sortbyraw : bool
-    figsize : tuple
-    threshold : float
-
-    Returns
-    -------
-    None
-    """
-    es = EffectSize()
-    es.fit(X, treatment, weight=weight)
-    ajusted_names, ajusted_effects = es.transform()
-
-    es = EffectSize()
-    es.fit(X, treatment, weight=None)
-    raw_names, raw_effects = es.transform()
-
-    sort_data = raw_effects if sortbyraw else ajusted_effects
-
-    if ascending:
-        sorted_index = np.argsort(sort_data)
-    else:
-        sorted_index = np.argsort(sort_data)[::-1]
-
-    plt.figure(figsize=figsize)
-    plt.title('Standard Diff')
-
-    plt.bar(raw_names[sorted_index], raw_effects[sorted_index],
-            color='tab:blue', label='Raw')
-    plt.bar(ajusted_names[sorted_index], ajusted_effects[sorted_index],
-            color='tab:cyan', label='Ajusted', width=0.5)
-    plt.ylabel('d value')
-    plt.xticks(rotation=90)
-    plt.plot([0.0, len(raw_names)], [threshold, threshold], color='tab:red', linestyle='--')
-    plt.tight_layout()
-    plt.legend()
-    plt.show()
 
 
 class AttributeEffect():
@@ -152,12 +107,13 @@ class AttributeEffect():
         Parameters
         ----------
         X : pd.DataFrame
-
+            Covariates for propensity score.
         treatment : pd.Series
-
+            Flags with or without intervention.
         y : pd.Series
-
+            Outcome variables.
         weight : np.array
+            The weight of each sample.
 
         Returns
         -------
@@ -198,6 +154,7 @@ class AttributeEffect():
         Parameters
         ----------
         figsize : tuple
+            Figure dimension ``(width, height)`` in inches.
 
         Returns
         -------
@@ -268,6 +225,66 @@ class VIF():
         return self.transform()
 
 
+def plot_effect_size(
+        X, treatment, weight=None,
+        ascending=False, sortbyraw=True, figsize=(12, 6), threshold=0.2):
+    """
+    Summary Documentation.
+
+    Parameters
+    ----------
+    X : numpy.ndarray
+        Covariates for propensity score.
+    treatment : numpy.ndarray
+        Flags with or without intervention.
+    weight : numpy.ndarray
+        The weight of each sample
+    ascending : bool
+        Sort in ascending order.
+    sortbyraw : bool
+        Flags with sort by raw data or weighted data.
+    figsize : tuple
+        Figure dimension ``(width, height)`` in inches.
+    threshold : float
+
+    Returns
+    -------
+    None
+
+    Examples
+    --------
+    plot_effect_size(X, treatment, weight=ate_weight)
+    """
+    es = EffectSize()
+    es.fit(X, treatment, weight=weight)
+    ajusted_names, ajusted_effects = es.transform()
+
+    es = EffectSize()
+    es.fit(X, treatment, weight=None)
+    raw_names, raw_effects = es.transform()
+
+    sort_data = raw_effects if sortbyraw else ajusted_effects
+
+    if ascending:
+        sorted_index = np.argsort(sort_data)
+    else:
+        sorted_index = np.argsort(sort_data)[::-1]
+
+    plt.figure(figsize=figsize)
+    plt.title('Standard Diff')
+
+    plt.bar(raw_names[sorted_index], raw_effects[sorted_index],
+            color='tab:blue', label='Raw')
+    plt.bar(ajusted_names[sorted_index], ajusted_effects[sorted_index],
+            color='tab:cyan', label='Ajusted', width=0.5)
+    plt.ylabel('d value')
+    plt.xticks(rotation=90)
+    plt.plot([0.0, len(raw_names)], [threshold, threshold], color='tab:red', linestyle='--')
+    plt.tight_layout()
+    plt.legend()
+    plt.show()
+
+
 def plot_roc_curve(y_true, y_score, figsize=(7, 6)):
     """
     Summary Documentation.
@@ -275,8 +292,11 @@ def plot_roc_curve(y_true, y_score, figsize=(7, 6)):
     Parameters
     ----------
     y_true : numpy.ndarray
+        The target vector.
     y_score : numpy.ndarray
+        The score vector.
     figsize : tuple
+        Figure dimension ``(width, height)`` in inches.
 
     Returns
     -------
@@ -304,8 +324,11 @@ def plot_probability_distribution(y_true, y_score, figsize=(12, 6)):
     Parameters
     ----------
     y_true : numpy.ndarray
+        The target vector.
     y_score : numpy.ndarray
+        The score vector.
     figsize : tuple
+        Figure dimension ``(width, height)`` in inches.
 
     Returns
     -------
@@ -340,12 +363,18 @@ def plot_treatment_effect(
 
     Parameters
     ----------
-    outcome_name : numpy.ndarray
-    control_effect : numpy.ndarray[bool]
-    treat_effect : numpy.ndarray
-    effect_size : numpy.ndarray
+    outcome_name : str
+        Outcome name. it use for figure title.
+    control_effect : float or int
+        Average control Group Effect size.
+    treat_effect : float or int
+        Average treatment Group Effect size.
+    effect_size : float or int
+        Treatment Effect size.
     figsize : tuple
+        Figure dimension ``(width, height)`` in inches.
     fontsize: int
+        The font size of the text. See `.Text.set_size` for possible values.
 
     Returns
     -------
@@ -370,8 +399,11 @@ def f1_score(y_true, y_score, threshold='auto'):
     Parameters
     ----------
     y_true : numpy.ndarray
+        The target vector.
     y_score : numpy.ndarray
+        The score vector.
     threshold : 'auto' or float
+        Increasing thresholds on the decision function used to compute precision and recall.
 
     Returns
     -------
