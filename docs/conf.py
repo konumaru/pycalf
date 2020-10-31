@@ -66,3 +66,6 @@ source_parsers = {
 }
 
 source_suffix = ['.rst', '.md']
+
+# Dump requirements.txt command.
+# $ poetry export -f requirements.txt > requirements.txt
