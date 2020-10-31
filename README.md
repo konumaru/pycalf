@@ -1,4 +1,5 @@
 # pycalf: Causal Inference Library
+[Documentation](https://pycalf.readthedocs.io/en/latest/)
 
 A library to make causal inference easier by using Python
 
