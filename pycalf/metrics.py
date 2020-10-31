@@ -8,7 +8,7 @@ import statsmodels.api as sm
 from statsmodels.regression import linear_model
 
 import matplotlib.pyplot as plt
-plt.style.use('seaborn-darkgird')
+plt.style.use('seaborn-darkgrid')
 
 
 class EffectSize():
