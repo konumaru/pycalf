@@ -12,8 +12,7 @@ plt.style.use('seaborn-darkgrid')
 
 
 class EffectSize():
-    """
-    Class for calculating the effect size d.
+    """Calculating the effect size d.
 
     Examples
     --------
@@ -64,7 +63,7 @@ class EffectSize():
         self.effect_name = X.columns.to_numpy()
 
     def transform(self):
-        """Apply the dimensionality reduction on X.
+        """Apply the calculating the effect size d.
 
         Returns
         -------
@@ -93,8 +92,7 @@ class EffectSize():
 
 
 class AttributeEffect():
-    """
-    Summary Documentation.
+    """Estimating the effect of the intervention by attribute.
     """
 
     def __init__(self):
@@ -102,7 +100,7 @@ class AttributeEffect():
         super().__init__()
 
     def fit(self, X: pd.DataFrame, treatment: pd.Series, y: pd.Series, weight: np.array = None):
-        """Description
+        """Fit the model with X, y and weight.
 
         Parameters
         ----------
@@ -124,7 +122,7 @@ class AttributeEffect():
         self.control_result = sm.WLS(y[~is_treat], X[~is_treat], weights=weight[~is_treat]).fit()
 
     def transform(self):
-        """Description
+        """Apply the estimating the effect of the intervention by attribute.
 
         Parameters
         ----------
@@ -149,7 +147,7 @@ class AttributeEffect():
         return result_df
 
     def plot_lift_values(self, figsize: tuple = (12, 6)):
-        """Description
+        """Plot the effect.
 
         Parameters
         ----------
@@ -169,16 +167,14 @@ class AttributeEffect():
 
 
 class VIF():
-    """
-    Summary Documentation.
+    """Variance Inflation Factor (VIF).
     """
 
     def __init__(self):
         self.result = None
 
     def fit(self, data: pd.DataFrame):
-        """
-        Summary Documentation.
+        """Fit the model with data.
 
         Parameters
         ----------
@@ -200,8 +196,7 @@ class VIF():
         self.result = vif
 
     def transform(self):
-        """
-        Summary Documentation.
+        """Apply the calculating vif.
 
         Returns
         -------
@@ -210,8 +205,7 @@ class VIF():
         return self.result
 
     def fit_transform(self, data: pd.DataFrame, **kwargs):
-        """
-        Summary Documentation.
+        """Fit the model with data and apply the calculating vif.
 
         Parameters
         ----------
@@ -228,8 +222,7 @@ class VIF():
 def plot_effect_size(
         X, treatment, weight=None,
         ascending=False, sortbyraw=True, figsize=(12, 6), threshold=0.2):
-    """
-    Summary Documentation.
+    """Plot the effects of the intervention.
 
     Parameters
     ----------
@@ -253,7 +246,7 @@ def plot_effect_size(
 
     Examples
     --------
-    plot_effect_size(X, treatment, weight=ate_weight)
+    >>> plot_effect_size(X, treatment, weight=ate_weight)
     """
     es = EffectSize()
     es.fit(X, treatment, weight=weight)
@@ -286,8 +279,7 @@ def plot_effect_size(
 
 
 def plot_roc_curve(y_true, y_score, figsize=(7, 6)):
-    """
-    Summary Documentation.
+    """Plot the roc curve.
 
     Parameters
     ----------
@@ -318,8 +310,7 @@ def plot_roc_curve(y_true, y_score, figsize=(7, 6)):
 
 
 def plot_probability_distribution(y_true, y_score, figsize=(12, 6)):
-    """
-    Summary Documentation.
+    """Plot propensity scores, color-coded by the presence or absence of intervention.
 
     Parameters
     ----------
@@ -358,8 +349,7 @@ def plot_probability_distribution(y_true, y_score, figsize=(12, 6)):
 def plot_treatment_effect(
         outcome_name, control_effect, treat_effect, effect_size,
         figsize=None, fontsize=12):
-    """
-    Summary Documentation.
+    """Plot the effects of the intervention.
 
     Parameters
     ----------
@@ -393,8 +383,7 @@ def plot_treatment_effect(
 
 
 def f1_score(y_true, y_score, threshold='auto'):
-    """
-    Summary Documentation.
+    """Plot the F1 score.
 
     Parameters
     ----------
