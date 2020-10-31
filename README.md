@@ -52,11 +52,11 @@ metrics.plot_treatment_effect(outcome_name, z0[0], z1[0], treat_effect[0].round(
 ```
 <div align="center">
     <h4> Effect size d. </h4>
-    <img width="800px" height="300px" src="d_values.png">
+    <img width="800px" height="300px" src="https://user-images.githubusercontent.com/17187586/97778595-981ffe80-1bbb-11eb-9f48-1fb1784bf17d.png">
     <h4> Propensity Score Distribution </h4>
-    <img width="540px" height="480px" src="readme_metrics.png">
+    <img width="540px" height="480px" src="https://user-images.githubusercontent.com/17187586/97778619-bbe34480-1bbb-11eb-92d8-e00e25b2aa53.png">
     <h4> Average Treatment Effect </h4>
-    <img width="420px" height="320px" src="readme_ate.png">
+    <img width="420px" height="300px" src="https://user-images.githubusercontent.com/17187586/97778627-cac9f700-1bbb-11eb-94ea-e5ebd86a5270.png">
 </div>
 
 
