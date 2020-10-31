@@ -8,10 +8,13 @@ import statsmodels.api as sm
 from statsmodels.regression import linear_model
 
 import matplotlib.pyplot as plt
-plt.style.use('seaborn')
+plt.style.use('seaborn-darkgird')
 
 
 class EffectSize():
+    """
+    Class for calculating the effect size d.
+    """
 
     def __init__(self):
         self.effect_size = None
@@ -87,6 +90,23 @@ class EffectSize():
 def plot_effect_size(
         X, treatment, weight=None,
         ascending=False, sortbyraw=True, figsize=(12, 6), threshold=0.2):
+    """
+    Summary Documentation.
+
+    Parameters
+    ----------
+    X : numpy.ndarray
+    treatment : numpy.ndarray
+    weight : numpy.ndarray
+    ascending : bool
+    sortbyraw : bool
+    figsize : tuple
+    threshold : float
+
+    Returns
+    -------
+    None
+    """
     es = EffectSize()
     es.fit(X, treatment, weight=weight)
     ajusted_names, ajusted_effects = es.transform()
@@ -118,6 +138,10 @@ def plot_effect_size(
 
 
 class AttributeEffect():
+    """
+    Summary Documentation.
+    """
+
     def __init__(self):
         self.effect = None
         super().__init__()
@@ -188,10 +212,25 @@ class AttributeEffect():
 
 
 class VIF():
+    """
+    Summary Documentation.
+    """
+
     def __init__(self):
         self.result = None
 
     def fit(self, data: pd.DataFrame):
+        """
+        Summary Documentation.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+
+        Returns
+        -------
+        None
+        """
         vif = pd.DataFrame(index=data.columns.tolist(), columns=['VIF'], dtype='float64')
 
         for feature in data.columns.tolist():
@@ -204,14 +243,45 @@ class VIF():
         self.result = vif
 
     def transform(self):
+        """
+        Summary Documentation.
+
+        Returns
+        -------
+        result : pd.DataFrame
+        """
         return self.result
 
     def fit_transform(self, data: pd.DataFrame, **kwargs):
+        """
+        Summary Documentation.
+
+        Parameters
+        ----------
+        data : pd.DataFrame
+
+        Returns
+        -------
+        result : pd.DataFrame
+        """
         self.fit(data, **kwargs)
         return self.transform()
 
 
 def plot_roc_curve(y_true, y_score, figsize=(7, 6)):
+    """
+    Summary Documentation.
+
+    Parameters
+    ----------
+    y_true : numpy.ndarray
+    y_score : numpy.ndarray
+    figsize : tuple
+
+    Returns
+    -------
+    None
+    """
     fpr, tpr, thresholds = metrics.roc_curve(y_true, y_score)
     auc = metrics.auc(fpr, tpr)
 
@@ -228,6 +298,19 @@ def plot_roc_curve(y_true, y_score, figsize=(7, 6)):
 
 
 def plot_probability_distribution(y_true, y_score, figsize=(12, 6)):
+    """
+    Summary Documentation.
+
+    Parameters
+    ----------
+    y_true : numpy.ndarray
+    y_score : numpy.ndarray
+    figsize : tuple
+
+    Returns
+    -------
+    None
+    """
     plt.figure(figsize=figsize)
     plt.title('Probability Distoribution.')
     plt.xlabel('Probability')
@@ -249,8 +332,25 @@ def plot_probability_distribution(y_true, y_score, figsize=(12, 6)):
     plt.show()
 
 
-def plot_treatment_effect(outcome_name, control_effect, treat_effect, effect_size,
-                          figsize=None, fontsize=12):
+def plot_treatment_effect(
+        outcome_name, control_effect, treat_effect, effect_size,
+        figsize=None, fontsize=12):
+    """
+    Summary Documentation.
+
+    Parameters
+    ----------
+    outcome_name : numpy.ndarray
+    control_effect : numpy.ndarray[bool]
+    treat_effect : numpy.ndarray
+    effect_size : numpy.ndarray
+    figsize : tuple
+    fontsize: int
+
+    Returns
+    -------
+    None
+    """
     plt.figure(figsize=figsize)
     plt.title(outcome_name)
     plt.bar(
@@ -264,6 +364,19 @@ def plot_treatment_effect(outcome_name, control_effect, treat_effect, effect_siz
 
 
 def f1_score(y_true, y_score, threshold='auto'):
+    """
+    Summary Documentation.
+
+    Parameters
+    ----------
+    y_true : numpy.ndarray
+    y_score : numpy.ndarray
+    threshold : 'auto' or float
+
+    Returns
+    -------
+    score : float
+    """
     msg = 'mode must be "auto" or 0 to 1.'
     assert threshold == 'auto' or 0 <= threshold < 1, msg
 
