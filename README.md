@@ -58,6 +58,12 @@ metrics.plot_treatment_effect(outcome_name, z0[0], z1[0], treat_effect[0].round(
 </div>
 
 
+## Export requirements.txt
+```
+$ poetry export -f requirements.txt --output requirements.txt
+```
+
+
 ## Contributing
 Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
