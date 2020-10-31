@@ -35,8 +35,7 @@ release = '0.2.8'
 extensions = [
     'recommonmark',
     'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
-    'sphinxcontrib.seqdiag'
+    'sphinx.ext.napoleon'
 ]
 
 # Add any paths that contain templates here, relative to this directory.
