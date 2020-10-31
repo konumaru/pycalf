@@ -11,6 +11,8 @@ Welcome to pycalf's documentation!
    :caption: Contents:
 
    pycalf
+   license
+   help
 
 
 Indices and tables
