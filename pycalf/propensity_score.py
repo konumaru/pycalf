@@ -327,7 +327,38 @@ class DoubleRobust(IPW):
         self.treat_learner = copy.deepcopy(second_learner)
         self.control_learner = copy.deepcopy(second_learner)
 
-    def estimate_effect(self, X, treatment, y, mode='ate'):
+    def fit(self, X, treatment, y, eps=1e-15):
+        """
+        Fit learner and Estimate Propensity Score.
+
+        Parameters
+        ----------
+        X : numpy.ndarray
+            Covariates for propensity score.
+        treatment : numpy.ndarray[bool]
+            Flags with or without intervention.
+        esp : float
+            Extreme Value Trend Score Rounding Value.
+        """
+        self.learner.fit(X, treatment)
+        assert 0 <= eps < 1, 'clip must be 0 to 1.'
+        self.p_score = np.clip(self.learner.predict_proba(X)[:, 1], eps, 1 - eps)
+
+        self.y_control = np.zeros(y.shape)
+        self.y_treat = np.zeros(y.shape)
+        # Fit second models
+        for i, _y in enumerate(y.T):
+            self.treat_learner.fit(X[treatment], _y[treatment])
+            self.control_learner.fit(X[~treatment], _y[~treatment])
+
+            self.y_control[:, i] = np.where(
+                ~treatment, _y, self.control_learner.predict(X)
+            )
+            self.y_treat[:, i] = np.where(
+                treatment, _y, self.treat_learner.predict(X)
+            )
+
+    def estimate_effect(self, treatment, mode='ate'):
         """
         Match using propensity score and return sample_weight.
 
@@ -348,9 +379,9 @@ class DoubleRobust(IPW):
         """
         self._check_mode(mode)
         weight = self.get_weight(treatment, mode=mode)
-        return self._estimate_outcomes(X, treatment, y, weight)
+        return self._estimate_outcomes(weight)
 
-    def _estimate_outcomes(self, X, treatment, y, weight):
+    def _estimate_outcomes(self, weight):
         """
         Match using propensity score and return sample_weight.
 
@@ -374,21 +405,7 @@ class DoubleRobust(IPW):
         effect_size : float
             diff of average_y_treatment and average_y_control
         """
-        y_control = np.zeros(y.shape)
-        y_treat = np.zeros(y.shape)
-        # Fit second models
-        for i, _y in enumerate(y.T):
-            self.treat_learner.fit(X[treatment], _y[treatment])
-            self.control_learner.fit(X[~treatment], _y[~treatment])
-
-            y_control[:, i] = np.where(
-                ~treatment, _y, self.control_learner.predict(X)
-            )
-            y_treat[:, i] = np.where(
-                treatment, _y, self.treat_learner.predict(X)
-            )
-
-        avg_y_control = np.average(y_control, axis=0, weights=weight)
-        avg_y_treat = np.average(y_treat, axis=0, weights=weight)
+        avg_y_control = np.average(self.y_control, axis=0, weights=weight)
+        avg_y_treat = np.average(self.y_treat, axis=0, weights=weight)
         effect_size = avg_y_treat - avg_y_control
         return (avg_y_control, avg_y_treat, effect_size)
