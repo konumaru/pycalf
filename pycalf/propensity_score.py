@@ -1,11 +1,10 @@
 import copy
 import numpy as np
-import pandas as pd
 
 from sklearn.neighbors import NearestNeighbors
 
 
-class Matching():
+class Matching:
     """
     Matching with propensity score.
 
@@ -15,7 +14,7 @@ class Matching():
         Propensity Score.
     """
 
-    def __init__(self, learner):
+    def __init__(self, learner, min_match_dist=1e-2):
         """
         Parameters
         ----------
@@ -24,8 +23,10 @@ class Matching():
         """
         self.learner = learner
         self.p_score = None
+        self.eps = 1e-15
+        self.min_match_dist = min_match_dist
 
-    def fit(self, X, treatment, y, eps=1e-15):
+    def fit(self, X, treatment, y):
         """
         Fit learner and Estimate Propensity Score.
 
@@ -41,8 +42,9 @@ class Matching():
             Extreme Value Trend Score Rounding Value.
         """
         self.learner.fit(X, treatment)
-        assert 0 <= eps < 1, 'clip must be 0 to 1.'
-        self.p_score = np.clip(self.learner.predict_proba(X)[:, 1], eps, 1 - eps)
+        self.p_score = np.clip(
+            self.learner.predict_proba(X)[:, 1], self.eps, 1 - self.eps
+        )
 
     def get_score(self):
         """
@@ -50,7 +52,7 @@ class Matching():
         """
         return self.p_score
 
-    def get_weight(self, treatment, mode='ate'):
+    def get_weight(self, treatment, mode="ate"):
         """
         Return sample weight representing matching.
 
@@ -66,9 +68,9 @@ class Matching():
         sampel_weight : numpy.ndarray
         """
         self._check_mode(mode)
-        if mode == 'raw':
+        if mode == "raw":
             return np.ones(treatment.shape[0])
-        elif mode == 'ate':
+        elif mode == "ate":
             return self._get_matching_weight(treatment)
 
     def _check_mode(self, mode):
@@ -80,8 +82,8 @@ class Matching():
         mode : str
             Adjustment method. raw or ate.
         """
-        mode_list = ['raw', 'ate']
-        assert mode in mode_list, 'mode must be string and it is raw　or ate.'
+        mode_list = ["raw", "ate"]
+        assert mode in mode_list, "mode must be string and it is raw　or ate."
 
     def _get_matching_weight(self, treatment):
         """
@@ -125,15 +127,16 @@ class Matching():
         """
         score = score.reshape(-1, 1)
         control_size, treat_size = (~treatment).sum(), treatment.sum()
-        maijor_sample_group = np.argmax([control_size, treat_size])
+        major_sample_group = np.argmax([control_size, treat_size])
 
-        neigh = NearestNeighbors(n_neighbors=5, metric='manhattan')
-        neigh.fit(score[treatment == maijor_sample_group])
+        neigh = NearestNeighbors(n_neighbors=5, metric="manhattan")
+        neigh.fit(score[treatment == major_sample_group])
         distance, match_idx = neigh.kneighbors(
-            score[treatment != maijor_sample_group], 1, return_distance=True)
-        match_idx = match_idx[distance < self.eps].flatten()
+            score[treatment != major_sample_group], 1, return_distance=True
+        )
+        match_idx = match_idx[distance < self.min_match_dist].flatten()
 
-        if maijor_sample_group == 1:
+        if major_sample_group == 1:
             treat_idx = np.where(treatment)[0][match_idx]
             control_idx = np.where(~treatment)[0]
         else:
@@ -141,7 +144,7 @@ class Matching():
             control_idx = np.where(~treatment)[0][match_idx]
         return treat_idx, control_idx
 
-    def estimate_effect(self, treatment, y, mode='ate'):
+    def estimate_effect(self, treatment, y, mode="ate"):
         """
         Match using propensity score and return sample_weight.
 
@@ -190,9 +193,8 @@ class Matching():
         return (avg_y_control, avg_y_treat, effect_size)
 
 
-class IPW():
-    """Inverse Probability Weighting Method.
-    """
+class IPW:
+    """Inverse Probability Weighting Method."""
 
     def __init__(self, learner):
         """
@@ -218,7 +220,7 @@ class IPW():
             Extreme Value Trend Score Rounding Value.
         """
         self.learner.fit(X, treatment)
-        assert 0 <= eps < 1, 'clip must be 0 to 1.'
+        assert 0 <= eps < 1, "clip must be 0 to 1."
         self.p_score = np.clip(self.learner.predict_proba(X)[:, 1], eps, 1 - eps)
 
     def get_score(self):
@@ -227,7 +229,7 @@ class IPW():
         """
         return self.p_score
 
-    def get_weight(self, treatment, mode='ate'):
+    def get_weight(self, treatment, mode="ate"):
         """
         Return sample weight representing matching.
 
@@ -243,16 +245,16 @@ class IPW():
         sampel_weight : numpy.ndarray
         """
         self._check_mode(mode)
-        if mode == 'raw':
+        if mode == "raw":
             return np.ones(treatment.shape[0])
-        elif mode == 'ate':
+        elif mode == "ate":
             return np.where(treatment == 1, 1 / self.p_score, 1 / (1 - self.p_score))
-        elif mode == 'att':
+        elif mode == "att":
             return np.where(treatment == 1, 1, self.p_score / (1 - self.p_score))
-        elif mode == 'atu':
+        elif mode == "atu":
             return np.where(treatment == 1, (1 - self.p_score) / self.p_score, 1)
 
-    def estimate_effect(self, treatment, y, mode='ate'):
+    def estimate_effect(self, treatment, y, mode="ate"):
         """
         Match using propensity score and return sample_weight.
 
@@ -282,8 +284,10 @@ class IPW():
         mode : str
             Adjustment method. must be raw, ate, att or atu.
         """
-        mode_list = ['raw', 'ate', 'att', 'atu']
-        assert mode in mode_list, 'mode must be string and it is must be raw, ate, att or atu.'
+        mode_list = ["raw", "ate", "att", "atu"]
+        assert (
+            mode in mode_list
+        ), "mode must be string and it is must be raw, ate, att or atu."
 
     def _estimate_outcomes(self, treatment, y, weight):
         """
@@ -337,11 +341,13 @@ class DoubleRobust(IPW):
             Covariates for propensity score.
         treatment : numpy.ndarray[bool]
             Flags with or without intervention.
+        y : numpy.ndarray
+            Outcome variables.
         esp : float
             Extreme Value Trend Score Rounding Value.
         """
         self.learner.fit(X, treatment)
-        assert 0 <= eps < 1, 'clip must be 0 to 1.'
+        assert 0 <= eps < 1, "clip must be 0 to 1."
         self.p_score = np.clip(self.learner.predict_proba(X)[:, 1], eps, 1 - eps)
 
         self.y_control = np.zeros(y.shape)
@@ -354,11 +360,9 @@ class DoubleRobust(IPW):
             self.y_control[:, i] = np.where(
                 ~treatment, _y, self.control_learner.predict(X)
             )
-            self.y_treat[:, i] = np.where(
-                treatment, _y, self.treat_learner.predict(X)
-            )
+            self.y_treat[:, i] = np.where(treatment, _y, self.treat_learner.predict(X))
 
-    def estimate_effect(self, treatment, mode='ate'):
+    def estimate_effect(self, treatment, mode="ate"):
         """
         Match using propensity score and return sample_weight.
 
