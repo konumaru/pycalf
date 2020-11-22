@@ -171,6 +171,23 @@ def plot_treatment_effect(
 
 
 def plot_auuc(uplift_score, lift, baseline, auuc=None):
+    """Plot Area Under the Uplift Curve (AUUC).
+
+    Parameters
+    ----------
+    uplift_score : numpy.ndarray
+        Array of uplift scores.
+    lift : numpy.ndarray
+        Array of lift, treatment effect.
+    baseline : numpy.ndarray
+        Array of random treat effect.
+    auuc : float
+        AUUC score.
+
+    Returns
+    -------
+    None
+    """
     label = f"AUUC = {auuc:.4f}" if auuc is not None else None
 
     plt.title('AUUC')
