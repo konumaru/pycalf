@@ -2,13 +2,11 @@ import numpy as np
 import pandas as pd
 
 from sklearn import metrics
-from sklearn.metrics import roc_auc_score
 
 import statsmodels.api as sm
 from statsmodels.regression import linear_model
 
 import matplotlib.pyplot as plt
-plt.style.use('seaborn-darkgrid')
 
 
 class EffectSize():
@@ -217,169 +215,6 @@ class VIF():
         """
         self.fit(data, **kwargs)
         return self.transform()
-
-
-def plot_effect_size(
-        X, treatment, weight=None,
-        ascending=False, sortbyraw=True, figsize=(12, 6), threshold=0.2):
-    """Plot the effects of the intervention.
-
-    Parameters
-    ----------
-    X : numpy.ndarray
-        Covariates for propensity score.
-    treatment : numpy.ndarray
-        Flags with or without intervention.
-    weight : numpy.ndarray
-        The weight of each sample
-    ascending : bool
-        Sort in ascending order.
-    sortbyraw : bool
-        Flags with sort by raw data or weighted data.
-    figsize : tuple
-        Figure dimension ``(width, height)`` in inches.
-    threshold : float
-
-    Returns
-    -------
-    None
-
-    Examples
-    --------
-    >>> plot_effect_size(X, treatment, weight=ate_weight)
-    """
-    es = EffectSize()
-    es.fit(X, treatment, weight=weight)
-    ajusted_names, ajusted_effects = es.transform()
-
-    es = EffectSize()
-    es.fit(X, treatment, weight=None)
-    raw_names, raw_effects = es.transform()
-
-    sort_data = raw_effects if sortbyraw else ajusted_effects
-
-    if ascending:
-        sorted_index = np.argsort(sort_data)
-    else:
-        sorted_index = np.argsort(sort_data)[::-1]
-
-    plt.figure(figsize=figsize)
-    plt.title('Standard Diff')
-
-    plt.bar(raw_names[sorted_index], raw_effects[sorted_index],
-            color='tab:blue', label='Raw')
-    plt.bar(ajusted_names[sorted_index], ajusted_effects[sorted_index],
-            color='tab:cyan', label='Ajusted', width=0.5)
-    plt.ylabel('d value')
-    plt.xticks(rotation=90)
-    plt.plot([0.0, len(raw_names)], [threshold, threshold], color='tab:red', linestyle='--')
-    plt.tight_layout()
-    plt.legend()
-    plt.show()
-
-
-def plot_roc_curve(y_true, y_score, figsize=(7, 6)):
-    """Plot the roc curve.
-
-    Parameters
-    ----------
-    y_true : numpy.ndarray
-        The target vector.
-    y_score : numpy.ndarray
-        The score vector.
-    figsize : tuple
-        Figure dimension ``(width, height)`` in inches.
-
-    Returns
-    -------
-    None
-    """
-    fpr, tpr, thresholds = metrics.roc_curve(y_true, y_score)
-    auc = metrics.auc(fpr, tpr)
-
-    plt.figure(figsize=figsize)
-    plt.plot(fpr, tpr, color='darkorange', lw=2, label='ROC curve (area = %0.2f)' % auc)
-    plt.plot([0, 1], [0, 1], color='navy', lw=2, linestyle='--')
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel('False Positive Rate')
-    plt.ylabel('True Positive Rate')
-    plt.title('ROC Curve')
-    plt.legend(loc="lower right")
-    plt.show()
-
-
-def plot_probability_distribution(y_true, y_score, figsize=(12, 6)):
-    """Plot propensity scores, color-coded by the presence or absence of intervention.
-
-    Parameters
-    ----------
-    y_true : numpy.ndarray
-        The target vector.
-    y_score : numpy.ndarray
-        The score vector.
-    figsize : tuple
-        Figure dimension ``(width, height)`` in inches.
-
-    Returns
-    -------
-    None
-    """
-    plt.figure(figsize=figsize)
-    plt.title('Probability Distoribution.')
-    plt.xlabel('Probability')
-    plt.ylabel('Number of Data')
-    plt.hist(
-        y_score[y_true == 0],
-        bins=np.linspace(0, 1, 100, endpoint=False),
-        rwidth=0.4,
-        align='left',
-        color='tab:blue'
-    )
-    plt.hist(
-        y_score[y_true == 1],
-        bins=np.linspace(0, 1, 100, endpoint=False),
-        rwidth=0.4,
-        align='mid',
-        color='tab:orange'
-    )
-    plt.show()
-
-
-def plot_treatment_effect(
-        outcome_name, control_effect, treat_effect, effect_size,
-        figsize=None, fontsize=12):
-    """Plot the effects of the intervention.
-
-    Parameters
-    ----------
-    outcome_name : str
-        Outcome name. it use for figure title.
-    control_effect : float or int
-        Average control Group Effect size.
-    treat_effect : float or int
-        Average treatment Group Effect size.
-    effect_size : float or int
-        Treatment Effect size.
-    figsize : tuple
-        Figure dimension ``(width, height)`` in inches.
-    fontsize: int
-        The font size of the text. See `.Text.set_size` for possible values.
-
-    Returns
-    -------
-    None
-    """
-    plt.figure(figsize=figsize)
-    plt.title(outcome_name)
-    plt.bar(
-        ['control', 'treatment'],
-        [control_effect, treat_effect],
-        label=f'Treatment Effect : {effect_size}'
-    )
-    plt.ylabel('effect size')
-    plt.legend(loc="upper left", fontsize=fontsize)
-    plt.show()
 
 
 def f1_score(y_true, y_score, threshold='auto'):
