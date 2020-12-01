@@ -12,10 +12,26 @@ pycalf.metrics module
    :undoc-members:
    :show-inheritance:
 
-pycalf.propensity\_score module
--------------------------------
+pycalf.propensity module
+------------------------
 
-.. automodule:: pycalf.propensity_score
+.. automodule:: pycalf.propensity
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pycalf.uplift module
+--------------------
+
+.. automodule:: pycalf.uplift
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
+pycalf.visualize module
+-----------------------
+
+.. automodule:: pycalf.visualize
    :members:
    :undoc-members:
    :show-inheritance:
