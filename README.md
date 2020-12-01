@@ -62,7 +62,7 @@ metrics.plot_treatment_effect(outcome_name, z0[0], z1[0], treat_effect[0].round(
 
 ## Export requirements.txt
 ```
-$ poetry export -f requirements.txt --output requirements.txt
+$ poetry export -f requirements.txt --output docs/requirements.txt
 ```
 
 
