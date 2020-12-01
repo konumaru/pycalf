@@ -11,6 +11,8 @@ Welcome to pycalf's documentation!
    :caption: Contents:
 
    modules
+   license
+   help
 
 
 

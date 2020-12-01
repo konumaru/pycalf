@@ -10,7 +10,7 @@ import matplotlib.pyplot as plt
 
 
 class EffectSize():
-    """Calculating the effect size d.
+    """Calculating the effect size-d.
 
     Examples
     --------
