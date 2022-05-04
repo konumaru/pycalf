@@ -1,3 +1,7 @@
+![example branch parameter](https://github.com/konumaru/pycalf/actions/workflows/python-package.yml/badge.svg?branch=master)
+[![PyPI Downloads](https://img.shields.io/pypi/dm/pycalf.svg?label=PyPI%20downloads)](
+https://pypi.org/project/pycalf/)
+
 # pycalf: Causal Inference Library
 [Documentation](https://pycalf.readthedocs.io/en/latest/)
 
