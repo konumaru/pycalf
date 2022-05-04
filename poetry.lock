@@ -401,7 +401,7 @@ traitlets = "*"
 
 [[package]]
 name = "jupyterlab"
-version = "2.1.2"
+version = "2.2.10"
 description = "The JupyterLab notebook server extension."
 category = "dev"
 optional = false
@@ -409,17 +409,17 @@ python-versions = ">=3.5"
 
 [package.dependencies]
 jinja2 = ">=2.10"
-jupyterlab-server = ">=1.1.0,<2.0"
+jupyterlab-server = ">=1.1.5,<2.0"
 notebook = ">=4.3.1"
 tornado = "<6.0.0 || >6.0.0,<6.0.1 || >6.0.1,<6.0.2 || >6.0.2"
 
 [package.extras]
-docs = ["sphinx", "recommonmark", "sphinx-rtd-theme", "sphinx-copybutton"]
+docs = ["jsx-lexer", "recommonmark", "sphinx", "sphinx-rtd-theme", "sphinx-copybutton"]
 test = ["pytest", "pytest-check-links", "requests", "wheel", "virtualenv"]
 
 [[package]]
 name = "jupyterlab-server"
-version = "1.1.4"
+version = "1.2.0"
 description = "JupyterLab Server"
 category = "dev"
 optional = false
@@ -678,7 +678,6 @@ description = "Python Imaging Library (Fork)"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
-
 
 [[package]]
 name = "pluggy"
@@ -1233,7 +1232,7 @@ python-versions = "*"
 [metadata]
 lock-version = "1.1"
 python-versions = "^3.8"
-content-hash = "425e8e627261f1163f43b90e6041f14d3e39d760a706e2456e0921c8798ffd31"
+content-hash = "89dd77e44855eec1018145565b75122541ca05303c7d1e501dab73f19b82798d"
 
 [metadata.files]
 alabaster = [
@@ -1374,12 +1373,12 @@ jupyter-core = [
     {file = "jupyter_core-4.6.3.tar.gz", hash = "sha256:394fd5dd787e7c8861741880bdf8a00ce39f95de5d18e579c74b882522219e7e"},
 ]
 jupyterlab = [
-    {file = "jupyterlab-2.1.2-py3-none-any.whl", hash = "sha256:1e43fc25e3237b6fde09c68641d79d2d08375f4dc90800d51425c3772b68e124"},
-    {file = "jupyterlab-2.1.2.tar.gz", hash = "sha256:380c29d674f6dcf8e380615334c7813bb4feb7bbb6222baf1d4c9f8318f4b104"},
+    {file = "jupyterlab-2.2.10-py3-none-any.whl", hash = "sha256:b51fbd28b93f22d310207b8720ba3ee7e56da8bdf281fa2b92843680932f7262"},
+    {file = "jupyterlab-2.2.10.tar.gz", hash = "sha256:802a57815a6af0f42dfd19a1b6b5d526f0605f1422c2d395cf837141975321e2"},
 ]
 jupyterlab-server = [
-    {file = "jupyterlab_server-1.1.4-py3-none-any.whl", hash = "sha256:224dd7e0555bf9df8d3d3b559c54993b433949e6cd9e17f7477848356dff843f"},
-    {file = "jupyterlab_server-1.1.4.tar.gz", hash = "sha256:b67b37ad071374e032bb8cfa3cb55832f6db09ca7f86d6d0cd7eed613c748133"},
+    {file = "jupyterlab_server-1.2.0-py3-none-any.whl", hash = "sha256:55d256077bf13e5bc9e8fbd5aac51bef82f6315111cec6b712b9a5ededbba924"},
+    {file = "jupyterlab_server-1.2.0.tar.gz", hash = "sha256:5431d9dde96659364b7cc877693d5d21e7b80cea7ae3959ecc2b87518e5f5d8c"},
 ]
 kiwisolver = [
     {file = "kiwisolver-1.2.0-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:443c2320520eda0a5b930b2725b26f6175ca4453c61f739fef7a5847bd262f74"},
