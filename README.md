@@ -1,20 +1,27 @@
+
+# pycalf: Causal Inference Library
+
 ![example branch parameter](https://github.com/konumaru/pycalf/actions/workflows/python-package.yml/badge.svg?branch=master)
+[![PyPI Latest Release](https://img.shields.io/pypi/v/pycalf.svg)](https://pypi.org/project/pycalf/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/pycalf.svg?label=PyPI%20downloads)](
 https://pypi.org/project/pycalf/)
 
-# pycalf: Causal Inference Library
 [Documentation](https://pycalf.readthedocs.io/en/latest/)
 
 A library to make causal inference easier by using Python
 
 ## Getting Started
+
 ### Installing
+
 ```
-$ pip install pycalf
+pip install pycalf
 ```
 
 ## Example
+
 ### Inference with IPW
+
 ```
 from pycalf import metrics
 from pycalf.propensity_score import IPW
@@ -54,6 +61,7 @@ z0, z1, treat_effect = model.estimate_effect(
     X, treatment, y[outcome_name].to_numpy().reshape(-1, 1), mode='ate')
 metrics.plot_treatment_effect(outcome_name, z0[0], z1[0], treat_effect[0].round())
 ```
+
 <div align="center">
     <h4> Effect size d. </h4>
     <img width="800px" height="300px" src="https://user-images.githubusercontent.com/17187586/97778595-981ffe80-1bbb-11eb-9f48-1fb1784bf17d.png">
@@ -63,21 +71,21 @@ metrics.plot_treatment_effect(outcome_name, z0[0], z1[0], treat_effect[0].round(
     <img width="420px" height="300px" src="https://user-images.githubusercontent.com/17187586/97778627-cac9f700-1bbb-11eb-94ea-e5ebd86a5270.png">
 </div>
 
-
 ## Export requirements.txt
-```
-$ poetry export -f requirements.txt --output docs/requirements.txt
-```
 
+```
+poetry export -f requirements.txt --output docs/requirements.txt
+```
 
 ## Contributing
+
 Please read [CONTRIBUTING.md](./CONTRIBUTING.md) for details on our code of conduct, and the process for submitting pull requests to us.
 
-
 ## Authors
+
 - [Konumaru](https://twitter.com/knmr_u) - Initial work
 
-
 ## Acknowledgments
-- Uber / causalml: https://github.com/uber/causalml
-- Iwanami Data Science Vol．3: https://www.iwanami.co.jp/book/b243764.html
+
+- Uber / causalml: <https://github.com/uber/causalml>
+- Iwanami Data Science Vol．3: <https://www.iwanami.co.jp/book/b243764.html>
