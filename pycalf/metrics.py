@@ -9,7 +9,7 @@ from statsmodels.regression import linear_model
 import matplotlib.pyplot as plt
 
 
-class EffectSize():
+class EffectSize:
     """Calculating the effect size-d.
 
     Examples
@@ -24,7 +24,9 @@ class EffectSize():
         self.effect_size = None
         self.effect_name = None
 
-    def fit(self, X: pd.DataFrame, treatment: np.ndarray, weight: np.ndarray = None):
+    def fit(
+        self, X: pd.DataFrame, treatment: np.ndarray, weight: np.ndarray = None
+    ):
         """Fit the model with X.
 
         Parameters
@@ -44,17 +46,27 @@ class EffectSize():
             weight = np.ones(X.shape[0])
         # Cauculation Average and Variance of Treat Group.
         treat_avg = np.average(X[treatment], weights=weight[treatment], axis=0)
-        treat_var = np.average(np.square(X[treatment] - treat_avg),
-                               weights=weight[treatment], axis=0)
+        treat_var = np.average(
+            np.square(X[treatment] - treat_avg),
+            weights=weight[treatment],
+            axis=0,
+        )
         # Cauculation Average and Variance of Control Group.
-        control_avg = np.average(X[~treatment], weights=weight[~treatment], axis=0)
-        control_var = np.average(np.square(X[~treatment] - control_avg),
-                                 weights=weight[~treatment], axis=0)
+        control_avg = np.average(
+            X[~treatment], weights=weight[~treatment], axis=0
+        )
+        control_var = np.average(
+            np.square(X[~treatment] - control_avg),
+            weights=weight[~treatment],
+            axis=0,
+        )
         # Estimate d_value.
         data_size = X.shape[0]
         treat_size = np.sum(treatment)
         control_size = np.sum(~treatment)
-        sc = np.sqrt((treat_size * treat_var + control_size * control_var) / data_size)
+        sc = np.sqrt(
+            (treat_size * treat_var + control_size * control_var) / data_size
+        )
         d_value = np.abs(treat_avg - control_avg) / sc
 
         self.effect_size = np.array(d_value)
@@ -69,7 +81,9 @@ class EffectSize():
         """
         return (self.effect_name, self.effect_size)
 
-    def fit_transform(self, X: pd.DataFrame, treatment: np.ndarray, weight: np.ndarray = None):
+    def fit_transform(
+        self, X: pd.DataFrame, treatment: np.ndarray, weight: np.ndarray = None
+    ):
         """Fit the model with X and apply the dimensionality reduction on X.
 
         Parameters
@@ -89,15 +103,20 @@ class EffectSize():
         return self.transform()
 
 
-class AttributeEffect():
-    """Estimating the effect of the intervention by attribute.
-    """
+class AttributeEffect:
+    """Estimating the effect of the intervention by attribute."""
 
     def __init__(self):
         self.effect = None
         super().__init__()
 
-    def fit(self, X: pd.DataFrame, treatment: pd.Series, y: pd.Series, weight: np.array = None):
+    def fit(
+        self,
+        X: pd.DataFrame,
+        treatment: pd.Series,
+        y: pd.Series,
+        weight: np.array = None,
+    ):
         """Fit the model with X, y and weight.
 
         Parameters
@@ -115,9 +134,13 @@ class AttributeEffect():
         -------
         None
         """
-        is_treat = (treatment == 1)
-        self.treat_result = sm.WLS(y[is_treat], X[is_treat], weights=weight[is_treat]).fit()
-        self.control_result = sm.WLS(y[~is_treat], X[~is_treat], weights=weight[~is_treat]).fit()
+        is_treat = treatment == 1
+        self.treat_result = sm.WLS(
+            y[is_treat], X[is_treat], weights=weight[is_treat]
+        ).fit()
+        self.control_result = sm.WLS(
+            y[~is_treat], X[~is_treat], weights=weight[~is_treat]
+        ).fit()
 
     def transform(self):
         """Apply the estimating the effect of the intervention by attribute.
@@ -133,14 +156,14 @@ class AttributeEffect():
         result = pd.DataFrame()
         models = [self.control_result, self.treat_result]
         for i, model in enumerate(models):
-            result[f'Z{i}_effect'] = model.params.round(1)
-            result[f'Z{i}_tvalue'] = model.tvalues.round(2).apply(
-                lambda x: str(x) + '**' if abs(x) >= 1.96 else str(x)
+            result[f"Z{i}_effect"] = model.params.round(1)
+            result[f"Z{i}_tvalue"] = model.tvalues.round(2).apply(
+                lambda x: str(x) + "**" if abs(x) >= 1.96 else str(x)
             )
 
         # Estimate Lift Values
-        result['Lift'] = (result['Z1_effect'] - result['Z0_effect'])
-        result_df = result.sort_values(by='Lift')
+        result["Lift"] = result["Z1_effect"] - result["Z0_effect"]
+        result_df = result.sort_values(by="Lift")
         self.effect = result_df
         return result_df
 
@@ -156,17 +179,16 @@ class AttributeEffect():
         -------
         """
         plt.figure(figsize=figsize)
-        plt.title('Treatment Lift Values')
-        plt.bar(self.effect.index, self.effect['Lift'].values)
-        plt.ylabel('Lift Value')
+        plt.title("Treatment Lift Values")
+        plt.bar(self.effect.index, self.effect["Lift"].values)
+        plt.ylabel("Lift Value")
         plt.xticks(rotation=90)
         plt.tight_layout()
         plt.show()
 
 
-class VIF():
-    """Variance Inflation Factor (VIF).
-    """
+class VIF:
+    """Variance Inflation Factor (VIF)."""
 
     def __init__(self):
         self.result = None
@@ -182,7 +204,9 @@ class VIF():
         -------
         None
         """
-        vif = pd.DataFrame(index=data.columns.tolist(), columns=['VIF'], dtype='float64')
+        vif = pd.DataFrame(
+            index=data.columns.tolist(), columns=["VIF"], dtype="float64"
+        )
 
         for feature in data.columns.tolist():
             X = data.drop([feature], axis=1)
@@ -190,7 +214,7 @@ class VIF():
 
             model = linear_model.OLS(endog=y, exog=X)
             r2 = model.fit().rsquared
-            vif.loc[feature, 'VIF'] = np.round(1 / (1 - r2), 2)
+            vif.loc[feature, "VIF"] = np.round(1 / (1 - r2), 2)
         self.result = vif
 
     def transform(self):
@@ -217,7 +241,7 @@ class VIF():
         return self.transform()
 
 
-def f1_score(y_true, y_score, threshold='auto'):
+def f1_score(y_true, y_score, threshold="auto"):
     """Plot the F1 score.
 
     Parameters
@@ -234,9 +258,9 @@ def f1_score(y_true, y_score, threshold='auto'):
     score : float
     """
     msg = 'mode must be "auto" or 0 to 1.'
-    assert threshold == 'auto' or 0 <= threshold < 1, msg
+    assert threshold == "auto" or 0 <= threshold < 1, msg
 
-    if threshold == 'auto':
+    if threshold == "auto":
         fpr, tpr, thresholds = metrics.roc_curve(y_true, y_score)
         gmeans = np.sqrt(tpr * (1 - fpr))
         threshold = thresholds[np.argmax(gmeans)]

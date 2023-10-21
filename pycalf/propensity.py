@@ -187,8 +187,12 @@ class Matching:
         effect_size : float
             diff of average_y_treatment and average_y_control
         """
-        avg_y_control = np.average(y[~treatment], axis=0, weights=weight[~treatment])
-        avg_y_treat = np.average(y[treatment], axis=0, weights=weight[treatment])
+        avg_y_control = np.average(
+            y[~treatment], axis=0, weights=weight[~treatment]
+        )
+        avg_y_treat = np.average(
+            y[treatment], axis=0, weights=weight[treatment]
+        )
         effect_size = avg_y_treat - avg_y_control
         return (avg_y_control, avg_y_treat, effect_size)
 
@@ -221,7 +225,9 @@ class IPW:
         """
         self.learner.fit(X, treatment)
         assert 0 <= eps < 1, "clip must be 0 to 1."
-        self.p_score = np.clip(self.learner.predict_proba(X)[:, 1], eps, 1 - eps)
+        self.p_score = np.clip(
+            self.learner.predict_proba(X)[:, 1], eps, 1 - eps
+        )
 
     def get_score(self):
         """
@@ -248,11 +254,17 @@ class IPW:
         if mode == "raw":
             return np.ones(treatment.shape[0])
         elif mode == "ate":
-            return np.where(treatment == 1, 1 / self.p_score, 1 / (1 - self.p_score))
+            return np.where(
+                treatment == 1, 1 / self.p_score, 1 / (1 - self.p_score)
+            )
         elif mode == "att":
-            return np.where(treatment == 1, 1, self.p_score / (1 - self.p_score))
+            return np.where(
+                treatment == 1, 1, self.p_score / (1 - self.p_score)
+            )
         elif mode == "atu":
-            return np.where(treatment == 1, (1 - self.p_score) / self.p_score, 1)
+            return np.where(
+                treatment == 1, (1 - self.p_score) / self.p_score, 1
+            )
 
     def estimate_effect(self, treatment, y, mode="ate"):
         """
@@ -311,8 +323,12 @@ class IPW:
         effect_size : float
             diff of average_y_treatment and average_y_control
         """
-        avg_y_control = np.average(y[~treatment], axis=0, weights=weight[~treatment])
-        avg_y_treat = np.average(y[treatment], axis=0, weights=weight[treatment])
+        avg_y_control = np.average(
+            y[~treatment], axis=0, weights=weight[~treatment]
+        )
+        avg_y_treat = np.average(
+            y[treatment], axis=0, weights=weight[treatment]
+        )
         effect_size = avg_y_treat - avg_y_control
         return (avg_y_control, avg_y_treat, effect_size)
 
@@ -348,7 +364,9 @@ class DoubleRobust(IPW):
         """
         self.learner.fit(X, treatment)
         assert 0 <= eps < 1, "clip must be 0 to 1."
-        self.p_score = np.clip(self.learner.predict_proba(X)[:, 1], eps, 1 - eps)
+        self.p_score = np.clip(
+            self.learner.predict_proba(X)[:, 1], eps, 1 - eps
+        )
 
         self.y_control = np.zeros(y.shape)
         self.y_treat = np.zeros(y.shape)
@@ -360,7 +378,9 @@ class DoubleRobust(IPW):
             self.y_control[:, i] = np.where(
                 ~treatment, _y, self.control_learner.predict(X)
             )
-            self.y_treat[:, i] = np.where(treatment, _y, self.treat_learner.predict(X))
+            self.y_treat[:, i] = np.where(
+                treatment, _y, self.treat_learner.predict(X)
+            )
 
     def estimate_effect(self, treatment, mode="ate"):
         """

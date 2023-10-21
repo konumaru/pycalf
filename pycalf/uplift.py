@@ -1,10 +1,8 @@
-
 import numpy as np
 
 
-class UpliftModel():
-    """Class of Uplift Modeling.
-    """
+class UpliftModel:
+    """Class of Uplift Modeling."""
 
     def __init__(self, learner_treat, learner_control):
         """
@@ -19,7 +17,15 @@ class UpliftModel():
         self.learner_treat = learner_treat
         self.learner_control = learner_control
 
-    def fit(self, X_treat, y_treat, X_control, y_control, weight_treat=None, weight_control=None):
+    def fit(
+        self,
+        X_treat,
+        y_treat,
+        X_control,
+        y_control,
+        weight_treat=None,
+        weight_control=None,
+    ):
         """
 
         Parameters
@@ -42,7 +48,9 @@ class UpliftModel():
         None
         """
         self.learner_treat.fit(X_treat, y_treat, sample_weight=weight_treat)
-        self.learner_control.fit(X_control, y_control, sample_weight=weight_control)
+        self.learner_control.fit(
+            X_control, y_control, sample_weight=weight_control
+        )
 
     def estimate_uplift_score(self, X):
         """Estimate uplift scores.
@@ -90,12 +98,19 @@ class UpliftModel():
         y_control = np.nancumsum(np.where(treatment == 0, y, np.nan))
 
         treat_size = np.nancumsum(np.where(treatment == 1, treatment, np.nan))
-        control_size = np.nancumsum(np.where(treatment == 0, (1 - treatment), np.nan))
+        control_size = np.nancumsum(
+            np.where(treatment == 0, (1 - treatment), np.nan)
+        )
 
-        cumavg_y_treat = np.array([
-            0.0 if s == 0 else _y / s for _y, s in zip(y_treat, treat_size)])
-        cumavg_y_control = np.array([
-            0.0 if s == 0 else _y / s for _y, s in zip(y_control, control_size)])
+        cumavg_y_treat = np.array(
+            [0.0 if s == 0 else _y / s for _y, s in zip(y_treat, treat_size)]
+        )
+        cumavg_y_control = np.array(
+            [
+                0.0 if s == 0 else _y / s
+                for _y, s in zip(y_control, control_size)
+            ]
+        )
 
         lift = (cumavg_y_treat - cumavg_y_control) * treat_size
         return (uplift_score, lift)
