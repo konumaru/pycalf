@@ -5,7 +5,6 @@
 [![PyPI Latest Release](https://img.shields.io/pypi/v/pycalf.svg)](https://pypi.org/project/pycalf/)
 [![PyPI Downloads](https://img.shields.io/pypi/dm/pycalf.svg?label=PyPI%20downloads)](
 https://pypi.org/project/pycalf/)
-
 [![Documentation Status](https://readthedocs.org/projects/pycalf/badge/?version=latest)](https://pycalf.readthedocs.io/en/latest/?badge=latest)
 
 A library to make causal inference easier by using Python

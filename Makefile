@@ -4,6 +4,17 @@ default: help
 help: # Show help for each of the Makefile recipes.
 	@grep -E '^[a-zA-Z0-9 -]+:.*#'  Makefile | sort | while read -r l; do printf "\033[1;32m$$(echo $$l | cut -f 1 -d':')\033[00m:$$(echo $$l | cut -f 2- -d'#')\n"; done
 
+.PHONY: init
+init: # Initialize poetry.
+	@echo "Initializing poetry..."
+	poetry install
+
+	poetry config repositories.testpypi https://test.pypi.org/legacy/
+	poetry config http-basic.testpypi ${TEST_PYPI_USERNAME} ${TEST_PYPI_PASSWORD}
+
+	poetry config repositories.pypi https://upload.pypi.org/legacy/
+	poetry config http-basic.pypi ${PYPI_USERNAME} ${PYPI_PASSWORD}
+
 .PHONY: lint
 lint: # Run lint with poetry.
 	@echo "Running lint..."
