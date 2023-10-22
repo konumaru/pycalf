@@ -9,6 +9,8 @@ on:
 jobs:
   tests:
     runs-on: ubuntu-latest
+
+    steps:
     - name: Install dependencies
         run: |
           pip install poetry
