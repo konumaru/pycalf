@@ -18,7 +18,7 @@ statsmodels = "^0.14.0"
 jupyterlab = "^2.2.10"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^5.2"
+pytest = "^7.4.2"
 pytest-cov = "^4.1.0"
 pyproject-flake8 = "^6.1.0"
 mypy = "^1.6.1"

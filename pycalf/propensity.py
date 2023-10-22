@@ -14,19 +14,20 @@ class Matching:
         Propensity Score.
     """
 
-    def __init__(self, learner, min_match_dist=1e-2):
+    def __init__(self, learner, min_match_dist=1e-2) -> None:
         """
         Parameters
         ----------
         learner :
             Learner to estimate propensity score.
         """
+        self.p_score: np.ndarray
+        self.eps: float = 1e-8
+
         self.learner = learner
-        self.p_score = None
-        self.eps = 1e-15
         self.min_match_dist = min_match_dist
 
-    def fit(self, X, treatment, y):
+    def fit(self, X, treatment, y) -> None:
         """
         Fit learner and Estimate Propensity Score.
 
@@ -72,6 +73,8 @@ class Matching:
             return np.ones(treatment.shape[0])
         elif mode == "ate":
             return self._get_matching_weight(treatment)
+        else:
+            raise ValueError("mode must be raw or ate.")
 
     def _check_mode(self, mode):
         """
@@ -200,17 +203,24 @@ class Matching:
 class IPW:
     """Inverse Probability Weighting Method."""
 
-    def __init__(self, learner):
+    def __init__(self, learner) -> None:
         """
         Parameters
         ----------
         learner :
             Learner to estimate propensity score.
         """
-        self.learner = learner
-        self.p_score = None
+        self.p_score: np.ndarray
 
-    def fit(self, X, treatment, eps=1e-15):
+        self.learner = learner
+
+    def fit(
+        self,
+        X: np.ndarray,
+        treatment: np.ndarray,
+        y: np.ndarray,
+        eps: float = 1e-8,
+    ) -> None:
         """
         Fit learner and Estimate Propensity Score.
 
@@ -225,11 +235,10 @@ class IPW:
         """
         self.learner.fit(X, treatment)
         assert 0 <= eps < 1, "clip must be 0 to 1."
-        self.p_score = np.clip(
-            self.learner.predict_proba(X)[:, 1], eps, 1 - eps
-        )
+        pred = self.learner.predict_proba(X)[:, 1]
+        self.p_score = np.clip(pred, eps, 1 - eps)
 
-    def get_score(self):
+    def get_score(self) -> np.ndarray:
         """
         Return propensity score.
         """
@@ -265,6 +274,8 @@ class IPW:
             return np.where(
                 treatment == 1, (1 - self.p_score) / self.p_score, 1
             )
+        else:
+            raise ValueError("mode must be raw, ate, att or atu.")
 
     def estimate_effect(self, treatment, y, mode="ate"):
         """
@@ -334,7 +345,7 @@ class IPW:
 
 
 class DoubleRobust(IPW):
-    def __init__(self, learner, second_learner):
+    def __init__(self, learner, second_learner) -> None:
         """
         Parameters
         ----------
@@ -347,7 +358,13 @@ class DoubleRobust(IPW):
         self.treat_learner = copy.deepcopy(second_learner)
         self.control_learner = copy.deepcopy(second_learner)
 
-    def fit(self, X, treatment, y, eps=1e-15):
+    def fit(
+        self,
+        X: np.ndarray,
+        treatment: np.ndarray,
+        y: np.ndarray,
+        eps: float = 1e-8,
+    ) -> None:
         """
         Fit learner and Estimate Propensity Score.
 

@@ -6,6 +6,7 @@ help: # Show help for each of the Makefile recipes.
 
 .PHONY: lint
 lint: # Run lint with poetry.
+	@echo "Running lint..."
 	poetry run isort pycalf/ tests/
 	poetry run black pycalf/ tests/
 	poetry run pflake8 pycalf/ tests/
@@ -14,4 +15,5 @@ lint: # Run lint with poetry.
 .PHONY: tests
 tests: # Run lint and tests with poetry.
 	make lint
-	poetry run pytest
+	@echo "Running tests..."
+	poetry run pytest --cov -v tests/
