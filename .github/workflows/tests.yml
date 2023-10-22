@@ -2,23 +2,28 @@ name: Test and Check Coverage
 
 on:
   push:
-    branches: [main]
-  pull_request:
-    branches: [main]
+    branches: [test/*]
 
 jobs:
   tests:
     runs-on: ubuntu-latest
 
     steps:
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.11'
+
       - name: Install dependencies
         run: |
           pip install poetry
           poetry config virtualenvs.create false
           poetry install
+
       - name: Run tests
         run: |
           poetry run pytest --cov=pycalf --cov-report=xml
+
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v3
         env:
