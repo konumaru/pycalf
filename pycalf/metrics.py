@@ -1,12 +1,11 @@
-import numpy as np
-import pandas as pd
-
-from sklearn import metrics
-
-import statsmodels.api as sm
-from statsmodels.regression import linear_model
+from typing import Tuple, Union
 
 import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+import statsmodels.api as sm
+from sklearn import metrics
+from statsmodels.regression import linear_model
 
 
 class EffectSize:
@@ -25,8 +24,11 @@ class EffectSize:
         self.effect_name = None
 
     def fit(
-        self, X: pd.DataFrame, treatment: np.ndarray, weight: np.ndarray = None
-    ):
+        self,
+        X: pd.DataFrame,
+        treatment: np.ndarray,
+        weight: Union[np.ndarray, None] = None,
+    ) -> None:
         """Fit the model with X.
 
         Parameters
@@ -82,7 +84,10 @@ class EffectSize:
         return (self.effect_name, self.effect_size)
 
     def fit_transform(
-        self, X: pd.DataFrame, treatment: np.ndarray, weight: np.ndarray = None
+        self,
+        X: pd.DataFrame,
+        treatment: np.ndarray,
+        weight: Union[np.ndarray, None] = None,
     ):
         """Fit the model with X and apply the dimensionality reduction on X.
 
@@ -106,17 +111,16 @@ class EffectSize:
 class AttributeEffect:
     """Estimating the effect of the intervention by attribute."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.effect = None
-        super().__init__()
 
     def fit(
         self,
         X: pd.DataFrame,
         treatment: pd.Series,
         y: pd.Series,
-        weight: np.array = None,
-    ):
+        weight: Union[np.ndarray, None] = None,
+    ) -> None:
         """Fit the model with X, y and weight.
 
         Parameters
@@ -134,12 +138,20 @@ class AttributeEffect:
         -------
         None
         """
+        if weight is None:
+            weight = np.ones(X.shape[0])
+
         is_treat = treatment == 1
+
         self.treat_result = sm.WLS(
-            y[is_treat], X[is_treat], weights=weight[is_treat]
+            y[is_treat],
+            X[is_treat],
+            weights=weight[is_treat],  # type: ignore
         ).fit()
         self.control_result = sm.WLS(
-            y[~is_treat], X[~is_treat], weights=weight[~is_treat]
+            y[~is_treat],
+            X[~is_treat],
+            weights=weight[~is_treat],  # type: ignore
         ).fit()
 
     def transform(self):
@@ -167,7 +179,8 @@ class AttributeEffect:
         self.effect = result_df
         return result_df
 
-    def plot_lift_values(self, figsize: tuple = (12, 6)):
+    def plot_lift_values(self, figsize: Tuple[float, float] = (12, 6)) -> None:
+        # TODO: Move to visualize.py
         """Plot the effect.
 
         Parameters
@@ -180,7 +193,7 @@ class AttributeEffect:
         """
         plt.figure(figsize=figsize)
         plt.title("Treatment Lift Values")
-        plt.bar(self.effect.index, self.effect["Lift"].values)
+        plt.bar(self.effect.index, self.effect["Lift"].values)  # type: ignore
         plt.ylabel("Lift Value")
         plt.xticks(rotation=90)
         plt.tight_layout()
@@ -190,10 +203,10 @@ class AttributeEffect:
 class VIF:
     """Variance Inflation Factor (VIF)."""
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.result = None
 
-    def fit(self, data: pd.DataFrame):
+    def fit(self, data: pd.DataFrame) -> None:
         """Fit the model with data.
 
         Parameters
@@ -241,8 +254,13 @@ class VIF:
         return self.transform()
 
 
-def f1_score(y_true, y_score, threshold="auto"):
-    """Plot the F1 score.
+def f1_score(
+    y_true: np.ndarray,
+    y_score: np.ndarray,
+    threshold: float = 0.5,
+    is_auto: bool = True,
+):
+    """Calculate the F1 score.
 
     Parameters
     ----------
@@ -251,16 +269,16 @@ def f1_score(y_true, y_score, threshold="auto"):
     y_score : numpy.ndarray
         The score vector.
     threshold : 'auto' or float
-        Increasing thresholds on the decision function used to compute precision and recall.
+        Increasing thresholds on the decision function
+        used to compute precision and recall.
 
     Returns
     -------
     score : float
     """
-    msg = 'mode must be "auto" or 0 to 1.'
-    assert threshold == "auto" or 0 <= threshold < 1, msg
+    assert 0 <= threshold < 1, "mode must be or 0 to 1."
 
-    if threshold == "auto":
+    if is_auto:
         fpr, tpr, thresholds = metrics.roc_curve(y_true, y_score)
         gmeans = np.sqrt(tpr * (1 - fpr))
         threshold = thresholds[np.argmax(gmeans)]

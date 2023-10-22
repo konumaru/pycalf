@@ -1,21 +1,21 @@
-import numpy as np
-import matplotlib.pyplot as plt
+from typing import Tuple
 
+import matplotlib.pyplot as plt
+import numpy as np
 from sklearn import metrics
-from sklearn.metrics import roc_auc_score
 
 from .metrics import EffectSize
 
 
 def plot_effect_size(
-    X,
-    treatment,
-    weight=None,
-    ascending=False,
-    sortbyraw=True,
-    figsize=(12, 6),
-    threshold=0.2,
-):
+    X: np.ndarray,
+    treatment: np.ndarray,
+    weight: np.ndarray | None = None,
+    ascending: bool = False,
+    sortbyraw: bool = True,
+    figsize: Tuple[float, float] = (12, 6),
+    threshold: float = 0.2,
+) -> None:
     """Plot the effects of the intervention.
 
     Parameters
@@ -86,7 +86,7 @@ def plot_effect_size(
     plt.show()
 
 
-def plot_roc_curve(y_true, y_score, figsize=(7, 6)):
+def plot_roc_curve(y_true, y_score, figsize=(7, 6)) -> None:
     """Plot the roc curve.
 
     Parameters
@@ -123,8 +123,9 @@ def plot_roc_curve(y_true, y_score, figsize=(7, 6)):
     plt.show()
 
 
-def plot_probability_distribution(y_true, y_score, figsize=(12, 6)):
-    """Plot propensity scores, color-coded by the presence or absence of intervention.
+def plot_probability_distribution(y_true, y_score, figsize=(12, 6)) -> None:
+    """Plot propensity scores, color-coded by
+    the presence or absence of intervention.
 
     Parameters
     ----------
@@ -139,20 +140,21 @@ def plot_probability_distribution(y_true, y_score, figsize=(12, 6)):
     -------
     None
     """
+    bins_list = list(np.linspace(0, 1, 100, endpoint=False))
     plt.figure(figsize=figsize)
     plt.title("Probability Distoribution.")
     plt.xlabel("Probability")
     plt.ylabel("Number of Data")
     plt.hist(
         y_score[y_true == 0],
-        bins=np.linspace(0, 1, 100, endpoint=False),
+        bins=bins_list,
         rwidth=0.4,
         align="left",
         color="tab:blue",
     )
     plt.hist(
         y_score[y_true == 1],
-        bins=np.linspace(0, 1, 100, endpoint=False),
+        bins=bins_list,
         rwidth=0.4,
         align="mid",
         color="tab:orange",
@@ -167,7 +169,7 @@ def plot_treatment_effect(
     effect_size,
     figsize=None,
     fontsize=12,
-):
+) -> None:
     """Plot the effects of the intervention.
 
     Parameters
@@ -201,7 +203,7 @@ def plot_treatment_effect(
     plt.show()
 
 
-def plot_auuc(uplift_score, lift, baseline, auuc=None):
+def plot_auuc(uplift_score, lift, baseline, auuc=None) -> None:
     """Plot Area Under the Uplift Curve (AUUC).
 
     Parameters
