@@ -16,7 +16,8 @@ def plot_effect_size(
     figsize: Tuple[float, float] = (12, 6),
     threshold: float = 0.2,
 ) -> None:
-    """Plot the effects of the intervention.
+    """
+    Plot the effects of the intervention.
 
     Parameters
     ----------

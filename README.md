@@ -14,7 +14,7 @@ A library to make causal inference easier by using Python
 
 ### Installing
 
-```
+```shell
 pip install pycalf
 ```
 
@@ -22,7 +22,7 @@ pip install pycalf
 
 ### Inference with IPW
 
-```
+```python
 from pycalf import metrics
 from pycalf.propensity_score import IPW
 
@@ -73,7 +73,7 @@ metrics.plot_treatment_effect(outcome_name, z0[0], z1[0], treat_effect[0].round(
 
 ## Export requirements.txt
 
-```
+```shell
 poetry export -f requirements.txt --output docs/requirements.txt
 ```
 
