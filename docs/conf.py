@@ -23,6 +23,8 @@ project = "pycalf"
 copyright = "2020, konumaru"
 author = "konumaru"
 
+rtds_action_github_repo = "konumaru/pycalf"
+rtds_action_github_token = os.environ["GITHUB_TOKEN"]
 
 # -- General configuration ---------------------------------------------------
 
