@@ -19,7 +19,7 @@ class EffectSize:
     es.transform() # return (effect_size, effect_name)
     """
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.effect_size = None
         self.effect_name = None
 
@@ -71,7 +71,7 @@ class EffectSize:
         )
         d_value = np.abs(treat_avg - control_avg) / sc
 
-        self.effect_size = np.array(d_value)
+        self.effect_size = d_value
         self.effect_name = X.columns.to_numpy()
 
     def transform(self):
