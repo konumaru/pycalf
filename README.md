@@ -1,4 +1,3 @@
-
 # pycalf: Causal Inference Library
 
 [![PyPI Latest Release](https://img.shields.io/pypi/v/pycalf.svg)](https://pypi.org/project/pycalf/)
