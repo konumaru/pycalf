@@ -2,7 +2,7 @@ name: Run test and Check coverage
 
 on:
   push:
-    branches: [test/*]
+    branches: [main]
 
 jobs:
   tests:
