@@ -1,6 +1,11 @@
 pycalf package
 ==============
 
+.. automodule:: pycalf
+   :members:
+   :undoc-members:
+   :show-inheritance:
+
 Submodules
 ----------
 
@@ -32,14 +37,6 @@ pycalf.visualize module
 -----------------------
 
 .. automodule:: pycalf.visualize
-   :members:
-   :undoc-members:
-   :show-inheritance:
-
-Module contents
----------------
-
-.. automodule:: pycalf
    :members:
    :undoc-members:
    :show-inheritance:

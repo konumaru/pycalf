@@ -29,7 +29,8 @@ docs: # Build documentation with poetry.
 			--ext-todo \
 			--ext-autodoc \
 	;fi
-	poetry run sphinx-apidoc -f -o docs pycalf --ext-autodoc --ext-doctest --ext-viewcode --ext-todo
+	poetry run sphinx-apidoc -f -o docs -M pycalf \
+		--ext-autodoc --ext-doctest --ext-viewcode --ext-todo
 	poetry run sphinx-build -b html docs docs/build
 	cd docs && make html
 	

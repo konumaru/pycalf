@@ -34,14 +34,11 @@ def plot_effect_size(
     figsize : tuple
         Figure dimension ``(width, height)`` in inches.
     threshold : float
+        Threshold value for effect size.
 
     Returns
     -------
     None
-
-    Examples
-    --------
-    >>> plot_effect_size(X, treatment, weight=ate_weight)
     """
     es = EffectSize()
     es.fit(X, treatment, weight=weight)
