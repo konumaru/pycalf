@@ -17,3 +17,20 @@ tests: # Run lint and tests with poetry.
 	make lint
 	@echo "Running tests..."
 	poetry run pytest --cov -v tests/
+
+.PHONY: docs
+docs: # Build documentation with poetry.
+	@echo "Building documentation..."
+	if [ ! -d "docs" ]; then \
+		poetry run sphinx-quickstart docs --sep \
+			-p pycalf -a konumaru -r 0.1 -l en \
+			--ext-doctest \
+			--ext-viewcode \
+			--ext-todo \
+			--ext-autodoc \
+	;fi
+	poetry run sphinx-apidoc -f -o ./docs/source ./pycalf \
+		--ext-autodoc --ext-doctest --ext-viewcode --ext-todo
+	poetry run sphinx-build -b html docs/source docs/build
+	cd docs && make html
+	
