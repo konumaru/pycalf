@@ -1,6 +1,5 @@
 from typing import Tuple, Union
 
-import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import statsmodels.api as sm
@@ -74,21 +73,21 @@ class EffectSize:
         self.effect_size = d_value
         self.effect_name = X.columns.to_numpy()
 
-    def transform(self):
+    def transform(self) -> Tuple[np.ndarray, np.ndarray]:
         """Apply the calculating the effect size d.
 
         Returns
         -------
         (effect_name, effect_size) : tuple
         """
-        return (self.effect_name, self.effect_size)
+        return self.effect_name, self.effect_size
 
     def fit_transform(
         self,
         X: pd.DataFrame,
         treatment: np.ndarray,
         weight: Union[np.ndarray, None] = None,
-    ):
+    ) -> Tuple[np.ndarray, np.ndarray]:
         """Fit the model with X and apply the dimensionality reduction on X.
 
         Parameters
@@ -112,7 +111,7 @@ class AttributeEffect:
     """Estimating the effect of the intervention by attribute."""
 
     def __init__(self) -> None:
-        self.effect = None
+        self.result: pd.DataFrame
 
     def fit(
         self,
@@ -154,57 +153,34 @@ class AttributeEffect:
             weights=weight[~is_treat],  # type: ignore
         ).fit()
 
-    def transform(self):
+    def transform(self) -> pd.DataFrame:
         """Apply the estimating the effect of the intervention by attribute.
-
-        Parameters
-        ----------
-        None
 
         Returns
         -------
         pd.DataFrame
         """
-        result = pd.DataFrame()
+        self.result = pd.DataFrame()
         models = [self.control_result, self.treat_result]
         for i, model in enumerate(models):
-            result[f"Z{i}_effect"] = model.params.round(1)
-            result[f"Z{i}_tvalue"] = model.tvalues.round(2).apply(
+            self.result[f"Z{i}_effect"] = model.params.round(1)
+            self.result[f"Z{i}_tvalue"] = model.tvalues.round(2).apply(
                 lambda x: str(x) + "**" if abs(x) >= 1.96 else str(x)
             )
 
         # Estimate Lift Values
-        result["Lift"] = result["Z1_effect"] - result["Z0_effect"]
-        result_df = result.sort_values(by="Lift")
-        self.effect = result_df
-        return result_df
-
-    def plot_lift_values(self, figsize: Tuple[float, float] = (12, 6)) -> None:
-        # TODO: Move to visualize.py
-        """Plot the effect.
-
-        Parameters
-        ----------
-        figsize : tuple
-            Figure dimension ``(width, height)`` in inches.
-
-        Returns
-        -------
-        """
-        plt.figure(figsize=figsize)
-        plt.title("Treatment Lift Values")
-        plt.bar(self.effect.index, self.effect["Lift"].values)  # type: ignore
-        plt.ylabel("Lift Value")
-        plt.xticks(rotation=90)
-        plt.tight_layout()
-        plt.show()
+        self.result["Lift"] = (
+            self.result["Z1_effect"] - self.result["Z0_effect"]
+        )
+        self.result.sort_values(by="Lift", inplace=True)
+        return self.result
 
 
 class VIF:
     """Variance Inflation Factor (VIF)."""
 
     def __init__(self) -> None:
-        self.result = None
+        self.result: pd.DataFrame
 
     def fit(self, data: pd.DataFrame) -> None:
         """Fit the model with data.
@@ -230,7 +206,7 @@ class VIF:
             vif.loc[feature, "VIF"] = np.round(1 / (1 - r2), 2)
         self.result = vif
 
-    def transform(self):
+    def transform(self) -> pd.DataFrame:
         """Apply the calculating vif.
 
         Returns
@@ -239,7 +215,7 @@ class VIF:
         """
         return self.result
 
-    def fit_transform(self, data: pd.DataFrame, **kwargs):
+    def fit_transform(self, data: pd.DataFrame, **kwargs) -> pd.DataFrame:
         """Fit the model with data and apply the calculating vif.
 
         Parameters
@@ -259,7 +235,7 @@ def f1_score(
     y_score: np.ndarray,
     threshold: float = 0.5,
     is_auto: bool = True,
-):
+) -> float:
     """Calculate the F1 score.
 
     Parameters

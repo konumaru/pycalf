@@ -44,4 +44,10 @@ docs: # Build documentation with poetry.
 		--ext-autodoc --ext-doctest --ext-viewcode --ext-todo
 	poetry run sphinx-build -b html docs docs/build
 	cd docs && make html
+
+.PHONY: publish
+publish: # Publish package to test pypi with poetry.
+	@echo "Publishing package..."
+	poetry publish --build -r testpypi
+
 	

@@ -1,4 +1,4 @@
-from typing import Tuple
+from typing import List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -227,4 +227,30 @@ def plot_auuc(uplift_score, lift, baseline, auuc=None) -> None:
     plt.xlabel("uplift score rank")
     plt.ylabel("lift")
     plt.legend(loc="lower right")
+    plt.show()
+
+
+def plot_lift_values(
+    labels: List[str],
+    values: List[float | int],
+    figsize: Tuple[float, float] = (12, 6),
+) -> None:
+    """Plot the lift values.
+
+    Args:
+        labels (List[str]): labels for x-axis.
+        values (List[float  |  int]): values for y-axis.
+        figsize (Tuple[float, float], optional): figure size. Defaults to
+        (12, 6).
+    """
+    assert len(labels) == len(
+        values
+    ), "The length of labels and values must be the same."
+
+    plt.figure(figsize=figsize)
+    plt.title("Treatment Lift Values")
+    plt.bar(labels, values)
+    plt.ylabel("Lift Value")
+    plt.xticks(rotation=90)
+    plt.tight_layout()
     plt.show()
