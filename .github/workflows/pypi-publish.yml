@@ -27,7 +27,7 @@ jobs:
       - name: Install dependencies
         run: |
           pip install -U pip
-          pip install poetry
+          pip install poetry --only-root
           
       - name: Build package
         run: |

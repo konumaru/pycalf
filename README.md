@@ -1,8 +1,10 @@
 # pycalf: Causal Inference Library
 
-[![PyPI Latest Release](https://img.shields.io/pypi/v/pycalf.svg)](https://pypi.org/project/pycalf/)
 [![Documentation Status](https://readthedocs.org/projects/pycalf/badge/?version=latest)](https://pycalf.readthedocs.io/en/latest/?badge=latest)
+[![PyPI Latest Release](https://img.shields.io/pypi/v/pycalf.svg)](https://pypi.org/project/pycalf/)
 [![codecov](https://codecov.io/gh/konumaru/pycalf/graph/badge.svg?token=A424F14MTQ)](https://codecov.io/gh/konumaru/pycalf)
+[![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
 A library to make causal inference easier by using Python
 
