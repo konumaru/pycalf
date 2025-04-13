@@ -14,7 +14,6 @@ jobs:
       name: pypi
       url: https://pypi.org/p/pycalf
     permissions:
-      contents: read
       id-token: write
 
     steps:
@@ -30,7 +29,7 @@ jobs:
       - name: Generate dynamic version for TestPyPI (main branch)
         if: github.ref == 'refs/heads/main'
         run: |
-          NEW_VERSION="0.0.1.dev${GITHUB_RUN_NUMBER}"
+          NEW_VERSION="0.3.1.dev${GITHUB_RUN_NUMBER}"
           echo "Generated version for TestPyPI: ${NEW_VERSION}"
           sed -i "s/^version\s*=.*/version = \"${NEW_VERSION}\"/" pyproject.toml
 
@@ -38,15 +37,13 @@ jobs:
         run: uv build
 
       - name: Publish to TestPyPI
+        id: publish-testpypi
         if: github.ref == 'refs/heads/main'
         uses: pypa/gh-action-pypi-publish@release/v1
         with:
           repository-url: https://test.pypi.org/legacy/
-          password: ${{ secrets.TEST_PYPI_API_TOKEN }}
 
-      # PyPI への公開（タグプッシュの場合）
+      # タグがプッシュされた場合にPyPIへ公開（TestPyPIの公開が成功した場合のみ）
       - name: Publish to PyPI
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: startsWith(github.ref, 'refs/tags/v') && (github.ref != 'refs/heads/main' || steps.publish-testpypi.outcome == 'success')
         uses: pypa/gh-action-pypi-publish@release/v1
-        with:
-          password: ${{ secrets.PYPI_API_TOKEN }}
