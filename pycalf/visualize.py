@@ -1,32 +1,35 @@
-from typing import List, Tuple
+from typing import List, Optional, Tuple, Union
 
 import matplotlib.pyplot as plt
 import numpy as np
+import pandas as pd
+from matplotlib.axes import Axes
 from sklearn import metrics
 
 from .metrics import EffectSize
 
 
 def plot_effect_size(
-    X: np.ndarray,
+    X: pd.DataFrame,
     treatment: np.ndarray,
-    weight: np.ndarray | None = None,
+    weight: Optional[np.ndarray] = None,
     ascending: bool = False,
     sortbyraw: bool = True,
     figsize: Tuple[float, float] = (12, 6),
-    threshold: float = 0.2,
-) -> None:
+    threshold: float = 0.1,
+    ax: Optional[Axes] = None,
+) -> Axes:
     """
     Plot the effects of the intervention.
 
     Parameters
     ----------
-    X : numpy.ndarray
+    X : pd.DataFrame
         Covariates for propensity score.
     treatment : numpy.ndarray
         Flags with or without intervention.
-    weight : numpy.ndarray
-        The weight of each sample
+    weight : numpy.ndarray, optional
+        The weight of each sample. Default is None.
     ascending : bool
         Sort in ascending order.
     sortbyraw : bool
@@ -35,56 +38,74 @@ def plot_effect_size(
         Figure dimension ``(width, height)`` in inches.
     threshold : float
         Threshold value for effect size.
+    ax : matplotlib.axes.Axes, optional
+        The axes to plot on. If None, a new figure and axes will be created.
 
     Returns
     -------
-    None
+    matplotlib.axes.Axes
+        The axes containing the plot.
     """
     es = EffectSize()
     es.fit(X, treatment, weight=weight)
-    ajusted_names, ajusted_effects = es.transform()
+    adjusted_result = es.transform()
+    adjusted_names = adjusted_result["effect_name"]
+    adjusted_effects = adjusted_result["effect_size"]
 
     es = EffectSize()
     es.fit(X, treatment, weight=None)
-    raw_names, raw_effects = es.transform()
+    raw_result = es.transform()
+    raw_names = raw_result["effect_name"]
+    raw_effects = raw_result["effect_size"]
 
-    sort_data = raw_effects if sortbyraw else ajusted_effects
+    sort_data = raw_effects if sortbyraw else adjusted_effects
 
     if ascending:
         sorted_index = np.argsort(sort_data)
     else:
         sorted_index = np.argsort(sort_data)[::-1]
 
-    plt.figure(figsize=figsize)
-    plt.title("Standard Diff")
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
 
-    plt.bar(
+    ax.set_title("Standard Diff")
+
+    ax.bar(
         raw_names[sorted_index],
         raw_effects[sorted_index],
         color="tab:blue",
         label="Raw",
     )
-    plt.bar(
-        ajusted_names[sorted_index],
-        ajusted_effects[sorted_index],
+    ax.bar(
+        adjusted_names[sorted_index],
+        adjusted_effects[sorted_index],
         color="tab:cyan",
-        label="Ajusted",
+        label="Adjusted",
         width=0.5,
     )
-    plt.ylabel("d value")
-    plt.xticks(rotation=90)
-    plt.plot(
+    ax.set_ylabel("d value")
+    ax.set_xticklabels(raw_names[sorted_index], rotation=90)
+    ax.plot(
         [0.0, len(raw_names)],
         [threshold, threshold],
         color="tab:red",
         linestyle="--",
     )
-    plt.tight_layout()
-    plt.legend()
-    plt.show()
+    ax.legend()
+
+    if ax is None:
+        plt.tight_layout()
+        plt.show()
+
+    return ax
 
 
-def plot_roc_curve(y_true, y_score, figsize=(7, 6)) -> None:
+def plot_roc_curve(
+    y_true: np.ndarray,
+    y_score: np.ndarray,
+    figsize: Tuple[float, float] = (7, 6),
+    ax: Optional[Axes] = None,
+) -> Axes:
     """Plot the roc curve.
 
     Parameters
@@ -95,33 +116,48 @@ def plot_roc_curve(y_true, y_score, figsize=(7, 6)) -> None:
         The score vector.
     figsize : tuple
         Figure dimension ``(width, height)`` in inches.
+    ax : matplotlib.axes.Axes, optional
+        The axes to plot on. If None, a new figure and axes will be created.
 
     Returns
     -------
-    None
+    matplotlib.axes.Axes
+        The axes containing the plot.
     """
     fpr, tpr, thresholds = metrics.roc_curve(y_true, y_score)
     auc = metrics.auc(fpr, tpr)
 
-    plt.figure(figsize=figsize)
-    plt.plot(
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+
+    ax.plot(
         fpr,
         tpr,
         color="darkorange",
         lw=2,
         label="ROC curve (area = %0.2f)" % auc,
     )
-    plt.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
-    plt.xlim([0.0, 1.0])
-    plt.ylim([0.0, 1.05])
-    plt.xlabel("False Positive Rate")
-    plt.ylabel("True Positive Rate")
-    plt.title("ROC Curve")
-    plt.legend(loc="lower right")
-    plt.show()
+    ax.plot([0, 1], [0, 1], color="navy", lw=2, linestyle="--")
+    ax.set_xlim(0.0, 1.0)
+    ax.set_ylim(0.0, 1.05)
+    ax.set_xlabel("False Positive Rate")
+    ax.set_ylabel("True Positive Rate")
+    ax.set_title("ROC Curve")
+    ax.legend(loc="lower right")
+
+    if ax is None:
+        plt.tight_layout()
+        plt.show()
+
+    return ax
 
 
-def plot_probability_distribution(y_true, y_score, figsize=(12, 6)) -> None:
+def plot_probability_distribution(
+    y_true: np.ndarray,
+    y_score: np.ndarray,
+    figsize: Tuple[float, float] = (12, 6),
+    ax: Optional[Axes] = None,
+) -> Axes:
     """Plot propensity scores, color-coded by
     the presence or absence of intervention.
 
@@ -133,41 +169,53 @@ def plot_probability_distribution(y_true, y_score, figsize=(12, 6)) -> None:
         The score vector.
     figsize : tuple
         Figure dimension ``(width, height)`` in inches.
+    ax : matplotlib.axes.Axes, optional
+        The axes to plot on. If None, a new figure and axes will be created.
 
     Returns
     -------
-    None
+    matplotlib.axes.Axes
+        The axes containing the plot.
     """
     bins_list = list(np.linspace(0, 1, 100, endpoint=False))
-    plt.figure(figsize=figsize)
-    plt.title("Probability Distoribution.")
-    plt.xlabel("Probability")
-    plt.ylabel("Number of Data")
-    plt.hist(
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+
+    ax.set_title("Probability Distoribution.")
+    ax.set_xlabel("Probability")
+    ax.set_ylabel("Number of Data")
+    ax.hist(
         y_score[y_true == 0],
         bins=bins_list,
         rwidth=0.4,
         align="left",
         color="tab:blue",
     )
-    plt.hist(
+    ax.hist(
         y_score[y_true == 1],
         bins=bins_list,
         rwidth=0.4,
         align="mid",
         color="tab:orange",
     )
-    plt.show()
+
+    if ax is None:
+        plt.tight_layout()
+        plt.show()
+
+    return ax
 
 
 def plot_treatment_effect(
-    outcome_name,
-    control_effect,
-    treat_effect,
-    effect_size,
-    figsize=None,
-    fontsize=12,
-) -> None:
+    outcome_name: str,
+    control_effect: Union[float, int],
+    treat_effect: Union[float, int],
+    effect_size: Union[float, int],
+    figsize: Optional[Tuple[float, float]] = None,
+    fontsize: int = 12,
+    ax: Optional[Axes] = None,
+) -> Axes:
     """Plot the effects of the intervention.
 
     Parameters
@@ -180,28 +228,44 @@ def plot_treatment_effect(
         Average treatment Group Effect size.
     effect_size : float or int
         Treatment Effect size.
-    figsize : tuple
-        Figure dimension ``(width, height)`` in inches.
+    figsize : tuple, optional
+        Figure dimension ``(width, height)`` in inches. Default is None.
     fontsize: int
         The font size of the text. See `.Text.set_size` for possible values.
+    ax : matplotlib.axes.Axes, optional
+        The axes to plot on. If None, a new figure and axes will be created.
 
     Returns
     -------
-    None
+    matplotlib.axes.Axes
+        The axes containing the plot.
     """
-    plt.figure(figsize=figsize)
-    plt.title(outcome_name)
-    plt.bar(
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+
+    ax.set_title(outcome_name)
+    ax.bar(
         ["control", "treatment"],
         [control_effect, treat_effect],
         label=f"Treatment Effect : {effect_size}",
     )
-    plt.ylabel("effect size")
-    plt.legend(loc="upper left", fontsize=fontsize)
-    plt.show()
+    ax.set_ylabel("effect size")
+    ax.legend(loc="upper left", fontsize=fontsize)
+
+    if ax is None:
+        plt.tight_layout()
+        plt.show()
+
+    return ax
 
 
-def plot_auuc(uplift_score, lift, baseline, auuc=None) -> None:
+def plot_auuc(
+    uplift_score: np.ndarray,
+    lift: np.ndarray,
+    baseline: np.ndarray,
+    auuc: Optional[float] = None,
+    ax: Optional[Axes] = None,
+) -> Axes:
     """Plot Area Under the Uplift Curve (AUUC).
 
     Parameters
@@ -212,45 +276,73 @@ def plot_auuc(uplift_score, lift, baseline, auuc=None) -> None:
         Array of lift, treatment effect.
     baseline : numpy.ndarray
         Array of random treat effect.
-    auuc : float
-        AUUC score.
+    auuc : float, optional
+        AUUC score. Default is None.
+    ax : matplotlib.axes.Axes, optional
+        The axes to plot on. If None, a new figure and axes will be created.
 
     Returns
     -------
-    None
+    matplotlib.axes.Axes
+        The axes containing the plot.
     """
     label = f"AUUC = {auuc:.4f}" if auuc is not None else None
 
-    plt.title("AUUC")
-    plt.plot(lift, label=label)
-    plt.plot(baseline)
-    plt.xlabel("uplift score rank")
-    plt.ylabel("lift")
-    plt.legend(loc="lower right")
-    plt.show()
+    if ax is None:
+        fig, ax = plt.subplots()
+
+    ax.set_title("AUUC")
+    ax.plot(lift, label=label)
+    ax.plot(baseline)
+    ax.set_xlabel("uplift score rank")
+    ax.set_ylabel("lift")
+    ax.legend(loc="lower right")
+
+    if ax is None:
+        plt.tight_layout()
+        plt.show()
+
+    return ax
 
 
 def plot_lift_values(
     labels: List[str],
-    values: List[float | int],
+    values: List[Union[float, int]],
     figsize: Tuple[float, float] = (12, 6),
-) -> None:
+    ax: Optional[Axes] = None,
+) -> Axes:
     """Plot the lift values.
 
-    Args:
-        labels (List[str]): labels for x-axis.
-        values (List[float  |  int]): values for y-axis.
-        figsize (Tuple[float, float], optional): figure size. Defaults to
-        (12, 6).
-    """
-    assert len(labels) == len(
-        values
-    ), "The length of labels and values must be the same."
+    Parameters
+    ----------
+    labels : List[str]
+        Labels for x-axis.
+    values : List[float or int]
+        Values for y-axis.
+    figsize : tuple
+        Figure dimension ``(width, height)`` in inches. Default is (12, 6).
+    ax : matplotlib.axes.Axes, optional
+        The axes to plot on. If None, a new figure and axes will be created.
 
-    plt.figure(figsize=figsize)
-    plt.title("Treatment Lift Values")
-    plt.bar(labels, values)
-    plt.ylabel("Lift Value")
-    plt.xticks(rotation=90)
-    plt.tight_layout()
-    plt.show()
+    Returns
+    -------
+    matplotlib.axes.Axes
+        The axes containing the plot.
+    """
+    assert len(labels) == len(values), (
+        "The length of labels and values must be the same."
+    )
+
+    if ax is None:
+        fig, ax = plt.subplots(figsize=figsize)
+
+    ax.set_title("Treatment Lift Values")
+    ax.bar(labels, values)
+    ax.set_ylabel("Lift Value")
+    ax.set_xticklabels(labels, rotation=90)
+
+    if ax is None:
+        plt.tight_layout()
+        plt.show()
+
+    return ax

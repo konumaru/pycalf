@@ -3,8 +3,8 @@ pycalf package
 
 .. automodule:: pycalf
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 Submodules
 ----------
@@ -14,29 +14,29 @@ pycalf.metrics module
 
 .. automodule:: pycalf.metrics
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 pycalf.propensity module
 ------------------------
 
 .. automodule:: pycalf.propensity
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 pycalf.uplift module
 --------------------
 
 .. automodule:: pycalf.uplift
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:
 
 pycalf.visualize module
 -----------------------
 
 .. automodule:: pycalf.visualize
    :members:
-   :undoc-members:
    :show-inheritance:
+   :undoc-members:

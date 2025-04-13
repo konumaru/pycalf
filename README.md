@@ -69,10 +69,22 @@ metrics.plot_treatment_effect(outcome_name, z0[0], z1[0], treat_effect[0].round(
     <img width="420px" height="300px" src="https://user-images.githubusercontent.com/17187586/97778627-cac9f700-1bbb-11eb-94ea-e5ebd86a5270.png">
 </div>
 
-## Export requirements.txt
+## Development
+
+This project uses [uv](https://github.com/astral-sh/uv) for package management. To set up the development environment:
 
 ```shell
-poetry export -f requirements.txt --output docs/requirements.txt
+# Initialize the development environment
+make init
+
+# Run tests
+make tests
+
+# Run linting
+make lint
+
+# Build documentation
+make docs
 ```
 
 ## Contributing

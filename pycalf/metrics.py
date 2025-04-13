@@ -1,4 +1,4 @@
-from typing import Tuple, Union
+from typing import Dict, Optional, Union
 
 import numpy as np
 import pandas as pd
@@ -19,8 +19,8 @@ class EffectSize:
     """
 
     def __init__(self) -> None:
-        self.effect_size = None
-        self.effect_name = None
+        self.effect_size: Optional[np.ndarray] = None
+        self.effect_name: Optional[np.ndarray] = None
 
     def fit(
         self,
@@ -45,17 +45,15 @@ class EffectSize:
         """
         if weight is None:
             weight = np.ones(X.shape[0])
-        # Cauculation Average and Variance of Treat Group.
+        # Calculation Average and Variance of Treat Group.
         treat_avg = np.average(X[treatment], weights=weight[treatment], axis=0)
         treat_var = np.average(
             np.square(X[treatment] - treat_avg),
             weights=weight[treatment],
             axis=0,
         )
-        # Cauculation Average and Variance of Control Group.
-        control_avg = np.average(
-            X[~treatment], weights=weight[~treatment], axis=0
-        )
+        # Calculation Average and Variance of Control Group.
+        control_avg = np.average(X[~treatment], weights=weight[~treatment], axis=0)
         control_var = np.average(
             np.square(X[~treatment] - control_avg),
             weights=weight[~treatment],
@@ -65,29 +63,33 @@ class EffectSize:
         data_size = X.shape[0]
         treat_size = np.sum(treatment)
         control_size = np.sum(~treatment)
-        sc = np.sqrt(
-            (treat_size * treat_var + control_size * control_var) / data_size
-        )
+        sc = np.sqrt((treat_size * treat_var + control_size * control_var) / data_size)
         d_value = np.abs(treat_avg - control_avg) / sc
 
         self.effect_size = d_value
         self.effect_name = X.columns.to_numpy()
 
-    def transform(self) -> Tuple[np.ndarray, np.ndarray]:
+    def transform(self) -> Dict[str, np.ndarray]:
         """Apply the calculating the effect size d.
 
         Returns
         -------
-        (effect_name, effect_size) : tuple
+        Dict[str, np.ndarray]
+            Dictionary containing 'effect_name' and 'effect_size' arrays.
         """
-        return self.effect_name, self.effect_size
+        if self.effect_name is None or self.effect_size is None:
+            raise ValueError("Model not fitted. Call fit() before transform().")
+        return {
+            "effect_name": self.effect_name,
+            "effect_size": self.effect_size,
+        }
 
     def fit_transform(
         self,
         X: pd.DataFrame,
         treatment: np.ndarray,
         weight: Union[np.ndarray, None] = None,
-    ) -> Tuple[np.ndarray, np.ndarray]:
+    ) -> Dict[str, np.ndarray]:
         """Fit the model with X and apply the dimensionality reduction on X.
 
         Parameters
@@ -112,6 +114,12 @@ class AttributeEffect:
 
     def __init__(self) -> None:
         self.result: pd.DataFrame
+        self.treat_result: Optional[
+            sm.regression.linear_model.RegressionResultsWrapper
+        ] = None
+        self.control_result: Optional[
+            sm.regression.linear_model.RegressionResultsWrapper
+        ] = None
 
     def fit(
         self,
@@ -160,6 +168,9 @@ class AttributeEffect:
         -------
         pd.DataFrame
         """
+        if self.treat_result is None or self.control_result is None:
+            raise ValueError("Model not fitted. Call fit() before transform().")
+
         self.result = pd.DataFrame()
         models = [self.control_result, self.treat_result]
         for i, model in enumerate(models):
@@ -169,9 +180,7 @@ class AttributeEffect:
             )
 
         # Estimate Lift Values
-        self.result["Lift"] = (
-            self.result["Z1_effect"] - self.result["Z0_effect"]
-        )
+        self.result["Lift"] = self.result["Z1_effect"] - self.result["Z0_effect"]
         self.result.sort_values(by="Lift", inplace=True)
         return self.result
 
@@ -244,13 +253,16 @@ def f1_score(
         The target vector.
     y_score : numpy.ndarray
         The score vector.
-    threshold : 'auto' or float
-        Increasing thresholds on the decision function
-        used to compute precision and recall.
+    threshold : float
+        Threshold on the decision function used to compute precision and recall.
+        Default is 0.5.
+    is_auto : bool
+        If True, automatically find optimal threshold. Default is True.
 
     Returns
     -------
     score : float
+        F1 score.
     """
     assert 0 <= threshold < 1, "mode must be or 0 to 1."
 
@@ -259,5 +271,5 @@ def f1_score(
         gmeans = np.sqrt(tpr * (1 - fpr))
         threshold = thresholds[np.argmax(gmeans)]
 
-    score = metrics.f1_score(y_true, (y_score > threshold))
+    score = float(metrics.f1_score(y_true, (y_score > threshold)))
     return score
