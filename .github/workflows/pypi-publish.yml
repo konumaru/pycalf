@@ -23,17 +23,17 @@ jobs:
         with:
           python-version: "3.11"
 
-      - name: Install dependencies
+      - name: Install uv
         run: |
-          python -m pip install --upgrade pip
-          pip install build wheel
+          curl -LsSf https://astral.sh/uv/install.sh | sh
+          echo "$HOME/.cargo/bin" >> $GITHUB_PATH
 
-      - name: Set test version
+      - name: Set test version for TestPyPI
         id: set_test_version
         run: |
           if [[ $GITHUB_REF == refs/tags/v* ]]; then
             VERSION=${GITHUB_REF#refs/tags/v}.dev${GITHUB_RUN_NUMBER}
-            echo "Using tag version: ${VERSION}"
+            echo "Using test version from tag: ${VERSION}"
           else
             VERSION="0.0.1.dev${GITHUB_RUN_NUMBER}"
             echo "Using development version: ${VERSION}"
@@ -41,8 +41,8 @@ jobs:
           echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
           sed -i "s/^version\s*=.*/version = \"${VERSION}\"/" pyproject.toml
 
-      - name: Build package
-        run: python -m build
+      - name: Build package for TestPyPI
+        run: uv build
 
       - name: Publish to TestPyPI
         uses: pypa/gh-action-pypi-publish@release/v1
@@ -50,13 +50,18 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
           verbose: true
 
-      - name: Set version
+      - name: Set production version for PyPI
         if: startsWith(github.ref, 'refs/tags/v')
         run: |
           VERSION=${GITHUB_REF#refs/tags/v}
-          echo "Using tag version: ${VERSION}"
-          echo "VERSION=${VERSION}" >> $GITHUB_OUTPUT
+          echo "Using production version: ${VERSION}"
           sed -i "s/^version\s*=.*/version = \"${VERSION}\"/" pyproject.toml
+
+      - name: Build package for PyPI
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: |
+          rm -rf dist/
+          uv build
 
       - name: Publish to PyPI
         if: startsWith(github.ref, 'refs/tags/v')
