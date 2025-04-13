@@ -11,7 +11,7 @@ authors = [
 ]
 readme = "README.md"
 license = {text = "MIT"}
-requires-python = ">=3.11"
+requires-python = ">=3.13"
 dependencies = [
     "numpy>=1.18.2",
     "pandas>=1.0.3",
@@ -20,46 +20,45 @@ dependencies = [
     "statsmodels>=0.14.0",
 ]
 
+[project.optional-dependencies]
+dev = [
+    "pytest>=8.3.5",
+    "pytest-cov>=6.1.1",
+    "ruff>=0.11.5",
+    "sphinx>=8.2.3",
+    "sphinx-rtd-theme>=3.0.2",
+]
+
 [project.urls]
 repository = "https://github.com/konumaru/pycalf"
 documentation = "https://pycalf.readthedocs.io/en/latest/"
 
-[tool.flake8]
-max-line-length = 79
-extend-ignore = "E203,W503,F401,F841,W605"
 
-[tool.black]
-target-version = ["py39", "py310", "py311"]
+[tool.ruff]
 line-length = 79
-exclude = '''
-/(
-    \.eggs
-  | \.git
-  | \.hg
-  | \.mypy_cache
-  | \.tox
-  | \.venv
-  | _build
-  | buck-out
-  | build
-  | dist
-)/
-'''
+select = ["E", "F", "I"]
+ignore = ["E203", "W503", "F401", "E501", "F841", "W605"]
+exclude = [
+    ".eggs",
+    ".git",
+    ".hg",
+    ".mypy_cache",
+    ".tox",
+    ".venv",
+    "_build",
+    "buck-out",
+    "build",
+    "dist",
+]
 
-[tool.isort]
+[tool.ruff.isort]
+known-first-party = ["pycalf"]
 profile = "black"
-line_length = 79
+line-length = 79
 include_trailing_comma = true
 
-[tool.mypy]
+[tool.ruff.mypy]
 no_strict_optional = true
 ignore_missing_imports = true
 check_untyped_defs = true
 
-[dependency-groups]
-dev = [
-    "pytest>=8.3.5",
-    "pytest-cov>=6.1.1",
-    "sphinx>=8.2.3",
-    "sphinx-rtd-theme>=3.0.2",
-]
