@@ -408,7 +408,7 @@ class DoubleRobust(IPW):
         treatment : numpy.ndarray[bool]
             Flags with or without intervention.
         y : numpy.ndarray
-            Outcome variables.
+            Outcome variables. Can be 1D or 2D array.
         eps : float, default=1e-8
             Extreme Value Trend Score Rounding Value.
 
@@ -417,23 +417,52 @@ class DoubleRobust(IPW):
         ValueError
             If eps is not in range [0, 1).
         """
-        self.learner.fit(X, treatment)
+        # pandas.Seriesの場合はnumpy配列に変換
+        if hasattr(treatment, "values"):
+            treatment = treatment.values
+
+        # 型を明示的にブール値に変換
+        treatment = treatment.astype(bool)
+
+        # DataFrameのコピーを作成し操作する（参照渡しによる問題を回避）
+        X_df = X.copy()
+
+        self.learner.fit(X_df, treatment)
         if not 0 <= eps < 1:
             raise ValueError("eps must be in range [0, 1).")
 
-        self.p_score = np.clip(self.learner.predict_proba(X)[:, 1], eps, 1 - eps)
+        self.p_score = np.clip(self.learner.predict_proba(X_df)[:, 1], eps, 1 - eps)
+
+        # 入力が1次元配列の場合は2次元に変換する
+        if len(y.shape) == 1:
+            y = y.reshape(-1, 1)
 
         self.y_control = np.zeros(y.shape)
         self.y_treat = np.zeros(y.shape)
+
+        # treatment=TrueとFalseの両方のサンプルが存在することを確認
+        if np.sum(treatment) == 0 or np.sum(~treatment) == 0:
+            raise ValueError("Both treatment and control groups must have samples.")
+
+        # pandasのDataFrameからtreatment=TrueとFalse用のサブセットを抽出
+        X_treat = X_df.iloc[np.where(treatment)[0]]
+        X_control = X_df.iloc[np.where(~treatment)[0]]
+
         # Fit second models
         for i, _y in enumerate(y.T):
-            self.treat_learner.fit(X[treatment], _y[treatment])
-            self.control_learner.fit(X[~treatment], _y[~treatment])
+            y_treat = _y[treatment]
+            y_control = _y[~treatment]
 
+            self.treat_learner.fit(X_treat, y_treat)
+            self.control_learner.fit(X_control, y_control)
+
+            # 予測時はindexではなくマスクを使用
             self.y_control[:, i] = np.where(
-                ~treatment, _y, self.control_learner.predict(X)
+                ~treatment, _y, self.control_learner.predict(X_df)
             )
-            self.y_treat[:, i] = np.where(treatment, _y, self.treat_learner.predict(X))
+            self.y_treat[:, i] = np.where(
+                treatment, _y, self.treat_learner.predict(X_df)
+            )
 
     def estimate_effect(
         self, treatment: np.ndarray, mode: str = "ate"
@@ -479,8 +508,15 @@ class DoubleRobust(IPW):
         tuple
             A tuple containing (avg_y_control, avg_y_treat, effect_size)
         """
+        # Use scalar averaging if possible to avoid array comparison issues
         avg_y_control = np.average(self.y_control, axis=0, weights=weight)
-
         avg_y_treat = np.average(self.y_treat, axis=0, weights=weight)
         effect_size = avg_y_treat - avg_y_control
+
+        # Convert to scalar if single dimension to avoid array comparison issues
+        if hasattr(effect_size, "__len__") and len(effect_size) == 1:
+            avg_y_control = float(avg_y_control)
+            avg_y_treat = float(avg_y_treat)
+            effect_size = float(effect_size)
+
         return (avg_y_control, avg_y_treat, effect_size)

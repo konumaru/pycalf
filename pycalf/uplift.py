@@ -122,7 +122,8 @@ class UpliftModel:
             Array of random treat effect.
         """
         data_size = len(lift)
-        base_line = np.arange(data_size) * lift[data_size - 1] / data_size
+        # Ensure that the first element is exactly 0 and last element matches lift[-1]
+        base_line = np.linspace(0, lift[data_size - 1], data_size)
         return base_line
 
     def get_auuc(self, lift: np.ndarray) -> float:
