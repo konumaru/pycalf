@@ -60,4 +60,6 @@ check_untyped_defs = true
 dev = [
     "pytest>=8.3.5",
     "pytest-cov>=6.1.1",
+    "sphinx>=8.2.3",
+    "sphinx-rtd-theme>=3.0.2",
 ]
