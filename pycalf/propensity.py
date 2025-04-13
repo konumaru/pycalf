@@ -417,10 +417,6 @@ class DoubleRobust(IPW):
         ValueError
             If eps is not in range [0, 1).
         """
-        # pandas.Seriesの場合はnumpy配列に変換
-        if hasattr(treatment, "values"):
-            treatment = treatment.values
-
         # 型を明示的にブール値に変換
         treatment = treatment.astype(bool)
 

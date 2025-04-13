@@ -106,7 +106,7 @@ class TestVisualization:
         """Test plot_lift_values function"""
         # Generate test data
         labels = ["A", "B", "C", "D", "E"]
-        values = [10, 5, 8, 12, 3]
+        values = np.array([10, 5, 8, 12, 3])
 
         # Test with default parameters
         ax = plot_lift_values(labels, values)
