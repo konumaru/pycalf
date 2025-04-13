@@ -32,7 +32,7 @@ jobs:
         id: set_version
         run: |
           if [[ $GITHUB_REF == refs/tags/v* ]]; then
-            VERSION=${GITHUB_REF#refs/tags/v}
+            VERSION=${GITHUB_REF#refs/tags/v}.dev${GITHUB_RUN_NUMBER}
             echo "Using tag version: ${VERSION}"
           else
             VERSION="0.0.1.dev${GITHUB_RUN_NUMBER}"
