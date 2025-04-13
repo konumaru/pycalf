@@ -32,12 +32,16 @@ jobs:
         run: |
           COMMIT_HASH=$(echo "${GITHUB_SHA}" | cut -c1-7)
           TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          NEW_VERSION="0.0.1.dev${TIMESTAMP}.${COMMIT_HASH}"
+          # PEP 440に準拠したバージョン形式に修正
+          NEW_VERSION="0.0.1.dev${TIMESTAMP}+${COMMIT_HASH}"
           echo "Generated version for TestPyPI: ${NEW_VERSION}"
           sed -i "s/^version\s*=.*/version = \"${NEW_VERSION}\"/" pyproject.toml
 
       - name: Build the package with uv
         run: uv build
+
+      - name: Show package files
+        run: ls -la dist/
 
       - name: Publish to TestPyPI
         id: publish-testpypi
