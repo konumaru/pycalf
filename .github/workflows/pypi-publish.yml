@@ -31,9 +31,7 @@ jobs:
         if: github.ref == 'refs/heads/main'
         run: |
           COMMIT_HASH=$(echo "${GITHUB_SHA}" | cut -c1-7)
-          TIMESTAMP=$(date +%Y%m%d%H%M%S)
-          # PEP 440に準拠したバージョン形式に修正
-          NEW_VERSION="0.0.1.dev${TIMESTAMP}+${COMMIT_HASH}"
+          NEW_VERSION="0.0.1.dev.${COMMIT_HASH}"
           echo "Generated version for TestPyPI: ${NEW_VERSION}"
           sed -i "s/^version\s*=.*/version = \"${NEW_VERSION}\"/" pyproject.toml
 
