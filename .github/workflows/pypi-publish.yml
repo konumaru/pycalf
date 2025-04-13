@@ -56,5 +56,5 @@ jobs:
           repository-url: https://test.pypi.org/legacy/
 
       - name: Publish to PyPI
-        if: startsWith(github.ref, 'refs/tags/v')
+        if: steps.publish-testpypi.outcome == 'success'
         uses: pypa/gh-action-pypi-publish@release/v1
