@@ -14,7 +14,7 @@ sys.path.insert(0, os.path.abspath(".."))
 project = "pycalf"
 copyright = "2025, konumaru"
 author = "konumaru"
-release = "0.1"
+release = "0.3.0"
 
 # -- General configuration ---------------------------------------------------
 # https://www.sphinx-doc.org/en/master/usage/configuration.html#general-configuration

@@ -10,7 +10,13 @@ init: # Initialize virtual environment with uv.
 	python -m venv .venv
 	.venv/bin/pip install -U pip
 	.venv/bin/pip install uv
-	.venv/bin/uv pip install -e .
+	.venv/bin/uv pip install -e ".[dev]"
+
+.PHONY: update
+update: # Update dependencies using uv.
+	@echo "Updating dependencies with uv..."
+	.venv/bin/uv pip install -e ".[dev]"
+	.venv/bin/uv pip freeze > requirements.txt
 
 .PHONY: lint
 lint: # Run lint.
@@ -50,4 +56,3 @@ publish: # Publish package to PyPI.
 	@echo "Publishing package to Test PyPI..."
 	.venv/bin/twine upload --repository testpypi dist/*
 
-	
