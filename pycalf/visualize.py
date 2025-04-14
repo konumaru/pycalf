@@ -307,7 +307,7 @@ def plot_auuc(
 
 def plot_lift_values(
     labels: List[str],
-    values: List[Union[float, int]],
+    values: List[float | int],
     figsize: Tuple[float, float] = (12, 6),
     ax: Optional[Axes] = None,
 ) -> Axes:
